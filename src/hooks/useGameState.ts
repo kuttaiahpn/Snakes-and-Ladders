@@ -13,6 +13,9 @@ export interface FirestorePlayer {
   stats: {
     snakesHit: number;
     laddersClimbed: number;
+    powerUpsUsed: number;
+    totalRolls: number;
+    luckyPercentage: number;
     unluckyPercentage: number;
   };
   isTurn: boolean;
@@ -43,7 +46,7 @@ const DEFAULT_GAME_STATE: GameState = {
       position: 1,
       avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBxCiLh-hMq9fmX0fKdhiPqILokcEKtcUXMT_WhGogzegehbZplz1o-j3r7sb2MVp5HFTw0AS0howSzTU4p3uosaR-Om2SLuNntabvFB0EcYS1ZTR5edG9waa0AoxR_NJg5HGajK1JVaDGE2mgijrihsGJvEAuzfBGRUAEwdtZmoSN_WHVSjMSfs0fLwaWYEAFn_2AjjlwxS3uFgqd1GtWLqwbYBYOqZ0TTO4yjitjWN_rzxGoAtQo72CP_Gh3S4648m8qilZLJw5I',
       color: '#96f8ff',
-      stats: { snakesHit: 0, laddersClimbed: 0, unluckyPercentage: 0 },
+      stats: { snakesHit: 0, laddersClimbed: 0, powerUpsUsed: 0, totalRolls: 0, luckyPercentage: 0, unluckyPercentage: 0 },
       isTurn: true,
     },
     {
@@ -52,7 +55,7 @@ const DEFAULT_GAME_STATE: GameState = {
       position: 1,
       avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCAXnMRRPS1wvWCO7nMKwr7ZVs8V38Q8nYxx4L42s_qTcIAoZtcqDF1EXZl1HUmGjM9EzA31y-cac1tXk0dJrVgAjoMCRZLmaZu7ZuR6UJ2pcaramkIzEEUsb-IZqYnMd1YsjsUetZmat1DDgX2nd4ZzVLuRu8TgmkfhsoZJCqsv9cLQ4d3__9mfgRAnxnG7yGMHNI35eeEDdMHwxYlbAzQD3jE1SE1oISibHpH3xz9DwTl5B7fIMqHsmJpZyd-nVxEUlDLmBh-QHs',
       color: '#ff51fa',
-      stats: { snakesHit: 0, laddersClimbed: 0, unluckyPercentage: 0 },
+      stats: { snakesHit: 0, laddersClimbed: 0, powerUpsUsed: 0, totalRolls: 0, luckyPercentage: 0, unluckyPercentage: 0 },
       isTurn: false,
     },
   ],
@@ -187,10 +190,16 @@ export function useGameState(localPlayerId: string) {
           }
         }
 
-        // Recalculate luck
-        const totalEvents = player.stats.snakesHit + player.stats.laddersClimbed;
-        player.stats.unluckyPercentage = totalEvents > 0 
-          ? Math.round((player.stats.snakesHit / totalEvents) * 100) 
+        // Increment total rolls
+        player.stats.totalRolls += 1;
+
+        // Recalculate luck using user's formula
+        const rolls = player.stats.totalRolls;
+        player.stats.luckyPercentage = rolls > 0
+          ? Math.round(((player.stats.laddersClimbed + player.stats.powerUpsUsed) / rolls) * 100)
+          : 0;
+        player.stats.unluckyPercentage = rolls > 0
+          ? Math.round((player.stats.snakesHit / rolls) * 100)
           : 0;
 
         player.position = finalPos;

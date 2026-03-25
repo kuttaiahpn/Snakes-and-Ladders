@@ -1,106 +1,109 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { FirestorePlayer } from '../hooks/useGameState';
 
-export default function TopAppBar() {
+interface TopAppBarProps {
+  players?: FirestorePlayer[];
+  currentTurnIndex?: number;
+}
+
+export default function TopAppBar({ players = [], currentTurnIndex = 0 }: TopAppBarProps) {
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+
+  // Sort players by position descending for leaderboard
+  const ranked = [...players].sort((a, b) => b.position - a.position);
+
   return (
-    <header className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-[#0d0d16]/80 backdrop-blur-xl border-b border-[#96f8ff]/10 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
-      <div className="flex items-center gap-4">
-        <span className="text-2xl font-black text-[#96f8ff] drop-shadow-[0_0_10px_rgba(150,248,255,0.5)] font-['Space_Grotesk'] tracking-tight uppercase">SNAKES & LADDERS</span>
-      </div>
+    <>
+      <header className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-3 md:px-6 h-14 md:h-16 bg-[#0d0d16]/80 backdrop-blur-xl border-b border-[#96f8ff]/10 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+        {/* Title — truncates on mobile */}
+        <span className="text-sm md:text-xl font-black text-[#96f8ff] drop-shadow-[0_0_10px_rgba(150,248,255,0.5)] font-['Space_Grotesk'] tracking-tight uppercase whitespace-nowrap">
+          <span className="hidden md:inline">SNAKES & LADDERS</span>
+          <span className="md:hidden">S&L</span>
+        </span>
 
-      {/* Top Bar Leaderboard Integration */}
-      <div className="hidden lg:flex items-center gap-6 px-4 py-1 glass-panel rounded-full border border-primary/20">
-        {/* Player 1 (Active) */}
-        <div className="flex items-center gap-3 px-3 py-1 border-r border-outline-variant/30">
-          <div className="relative w-8 h-8 rounded-full border-2 border-primary neon-glow-primary overflow-hidden">
-            <img alt="User" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBxCiLh-hMq9fmX0fKdhiPqILokcEKtcUXMT_WhGogzegehbZplz1o-j3r7sb2MVp5HFTw0AS0howSzTU4p3uosaR-Om2SLuNntabvFB0EcYS1ZTR5edG9waa0AoxR_NJg5HGajK1JVaDGE2mgijrihsGJvEAuzfBGRUAEwdtZmoSN_WHVSjMSfs0fLwaWYEAFn_2AjjlwxS3uFgqd1GtWLqwbYBYOqZ0TTO4yjitjWN_rzxGoAtQo72CP_Gh3S4648m8qilZLJw5I" />
+        {/* Player strip — scrollable on mobile, full on desktop */}
+        {players.length > 0 && (
+          <div className="flex items-center gap-2 md:gap-4 overflow-x-auto px-2 md:px-4 py-1 glass-panel rounded-full border border-primary/20 max-w-[50vw] md:max-w-none scrollbar-hide">
+            {players.map((p, i) => {
+              const isActive = i === currentTurnIndex;
+              const luckyPct = p.stats.luckyPercentage ?? 0;
+              return (
+                <div key={p.id} className={`flex items-center gap-2 px-2 py-1 flex-shrink-0 ${i < players.length - 1 ? 'border-r border-outline-variant/30' : ''}`}>
+                  <div className={`relative w-7 h-7 md:w-8 md:h-8 rounded-full overflow-hidden flex-shrink-0 border-2 ${isActive ? 'border-primary neon-glow-primary' : 'border-outline-variant/50'}`}>
+                    <img alt={p.name} className={`w-full h-full object-cover ${isActive ? '' : 'opacity-60'}`} src={p.avatarUrl} />
+                    {isActive && <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border border-black"></span>}
+                  </div>
+                  <div className="hidden md:flex flex-col min-w-0">
+                    <span className={`text-[9px] font-bold font-label uppercase truncate ${isActive ? 'text-primary' : 'text-on-surface-variant'}`}>
+                      {p.name}
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] font-black text-on-background">{p.position}</span>
+                      <div className="w-10 h-1 bg-surface-container-lowest rounded-full overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-secondary to-primary transition-all duration-500" style={{ width: `${Math.min(luckyPct, 100)}%` }}></div>
+                      </div>
+                      <span className="text-[8px] text-primary/60">{luckyPct}%</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-          <div className="flex flex-col">
-            <span className="text-[10px] font-bold font-label uppercase text-primary">Vapor_01</span>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-black text-on-background">42</span>
-              <div className="w-[50px] h-1 bg-surface-container-lowest rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-secondary to-primary" style={{ width: '75%' }}></div>
-              </div>
-            </div>
-          </div>
-        </div>
+        )}
 
-        {/* Player 2 */}
-        <div className="flex items-center gap-3 px-3 py-1 border-r border-outline-variant/30">
-          <div className="relative w-8 h-8 rounded-full border-2 border-outline-variant overflow-hidden">
-            <img alt="User" className="w-full h-full object-cover opacity-60" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDjjlqM4pNc7hj1gttu4dmGpIT_v5DSLAfRnp72zY4LXvYSO1Y0YmBODw0aQgvXmLOK-LrxRT2-NBvYOlkgXpd6V5mCz_UpKfOiq2i06FpzWHXhMAI-vUrN-cVFjH2q1p4-NboFpElxuFkXmvw9H8vFPnuXzV5lzgrHjtC1mERyr2dT-6nnHPmBaoWhdkk35DWhAptqNHo8OF7ITdEUrYpV1XO1WBPc_96MNbqP6M0ZqXlornbsVoIRUUAgbQdXgDKdlz2gzG6-4J8" />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-[10px] font-bold font-label uppercase text-on-surface-variant">Neon_Soul</span>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-black text-on-surface-variant">28</span>
-              <div className="w-[50px] h-1 bg-surface-container-lowest rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-secondary to-primary" style={{ width: '30%' }}></div>
-              </div>
-            </div>
-          </div>
+        {/* Action buttons */}
+        <div className="flex items-center gap-1 md:gap-3">
+          <button
+            onClick={() => setShowLeaderboard(!showLeaderboard)}
+            className="text-[#f2effb]/60 hover:text-[#96f8ff] hover:bg-[#96f8ff]/5 transition-all p-1.5 md:p-2 rounded-lg relative"
+          >
+            <span className="material-symbols-outlined text-xl md:text-2xl">leaderboard</span>
+          </button>
+          <button className="text-[#f2effb]/60 hover:text-[#96f8ff] hover:bg-[#96f8ff]/5 transition-all p-1.5 md:p-2 rounded-lg">
+            <span className="material-symbols-outlined text-xl md:text-2xl">settings</span>
+          </button>
         </div>
+      </header>
 
-        {/* Player 3 */}
-        <div className="flex items-center gap-3 px-3 py-1 border-r border-outline-variant/30">
-          <div className="relative w-8 h-8 rounded-full border-2 border-outline-variant overflow-hidden">
-            <img alt="User" className="w-full h-full object-cover opacity-60" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1ljG13B6ysMft7G0U3Gb-VI4BZPDt7pTyG8iyNYqoM4RR0VD6xCvxdjZaDiyG2aeeRvOYC-pxORb81J64NltiqSXeR0mqeIunm2pPZoGSjTD2aJ8rdpRt3tAsBPccMaNIfP73O4Cmi9SgK2ILqBoXyZf48g5YojEB5Hye8KmM6bwH7-w4JJN1qXor0HiVAl7lNXC7f8Yw83DBXkzOL_QmP2fh1Y-qf8J-WmR9B_ZnmGDrLl-4BcBd8A4aQh0z7Qb6T6XlyVBGX64" />
+      {/* Leaderboard Dropdown */}
+      {showLeaderboard && (
+        <div className="fixed top-14 md:top-16 right-2 md:right-6 z-[60] w-72 md:w-80 bg-[#0d0d16]/95 backdrop-blur-2xl border border-primary/20 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] p-4 animate-in slide-in-from-top-2">
+          <h3 className="font-headline text-sm font-bold text-primary mb-3 flex items-center gap-2">
+            <span className="material-symbols-outlined text-base">leaderboard</span>
+            LEADERBOARD
+          </h3>
+          <div className="space-y-3">
+            {ranked.map((p, i) => {
+              const lucky = p.stats.luckyPercentage ?? 0;
+              const unlucky = p.stats.unluckyPercentage ?? 0;
+              return (
+                <div key={p.id} className="flex items-center gap-3 p-2 rounded-xl bg-surface-container/40 border border-outline-variant/10">
+                  <span className="text-lg font-black text-primary/40 w-6 text-center">{i + 1}</span>
+                  <div className="w-8 h-8 rounded-full overflow-hidden border border-primary/30 flex-shrink-0">
+                    <img src={p.avatarUrl} alt={p.name} className="w-full h-full object-cover" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-bold uppercase text-on-background truncate">{p.name}</div>
+                    <div className="flex items-center gap-3 mt-1">
+                      <span className="text-[9px] text-on-surface-variant">Tile <span className="text-primary font-bold">{p.position}</span></span>
+                      <span className="text-[9px] text-on-surface-variant">🐍 {p.stats.snakesHit}</span>
+                      <span className="text-[9px] text-on-surface-variant">🪜 {p.stats.laddersClimbed}</span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-[8px] text-green-400">Lucky {lucky}%</span>
+                      <span className="text-[8px] text-red-400">Unlucky {unlucky}%</span>
+                      <span className="text-[8px] text-on-surface-variant/50">Rolls: {p.stats.totalRolls}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-          <div className="flex flex-col">
-            <span className="text-[10px] font-bold font-label uppercase text-on-surface-variant">D_Glich</span>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-black text-on-surface-variant">15</span>
-              <div className="w-[50px] h-1 bg-surface-container-lowest rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-secondary to-primary" style={{ width: '10%' }}></div>
-              </div>
-            </div>
-          </div>
+          <button onClick={() => setShowLeaderboard(false)} className="mt-3 w-full text-center text-[10px] text-primary/50 hover:text-primary uppercase tracking-widest">
+            Close
+          </button>
         </div>
-
-        {/* Player 4 */}
-        <div className="flex items-center gap-3 px-3 py-1 border-r border-outline-variant/30">
-          <div className="relative w-8 h-8 rounded-full border-2 border-outline-variant overflow-hidden">
-            <img alt="User" className="w-full h-full object-cover opacity-60" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCDtdaWK8F0615sQMxP3VnFH7PqX8hfukTQNdFqCfI0mUAGilcNj76KgNop22uZqfNRn-jH46-xw39aZePvhuT64kc6lEWxlEaiTMdm6hgncgEyNaf-lSk5NFIcN9_SVUBD4idtu1DnxHfPQhsKLEWgqr25gU_pO3wc2uuGkwJBI044jn9sTK2wkbTS1iYD6ic1-rFv9O1Z9BosmanRyMwtbTVeYvjFUxNizCfFZ83xjUq4s697-1ctZJJ-jxHUzr1xDcyMC3DZ5pc" />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-[10px] font-bold font-label uppercase text-on-surface-variant">Moxie_R</span>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-black text-on-surface-variant">67</span>
-              <div className="w-[50px] h-1 bg-surface-container-lowest rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-secondary to-primary" style={{ width: '90%' }}></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Player 5 */}
-        <div className="flex items-center gap-3 px-3 py-1">
-          <div className="relative w-8 h-8 rounded-full border-2 border-outline-variant overflow-hidden">
-            <img alt="User" className="w-full h-full object-cover opacity-60" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAaO49JdGQOyJUExXjFqpC_XEXBnOkttIg1dd5Jx1iwbcjcfLOWCX4ftI5xWfFsVQgVr6iF4_9HQvlFoMlRcP2oWQoBrj7YS4DxAteITqkb9lGG7se1Z6w_xa_FHPEblRfGMhKotcd-bImO-mOcdF16LcHd5dgByXLfbj5twZ_ch1VlBs9S7iUhxEDjQflhlTmfdk_YYRm1zvtJlGgWUpi-JhdCoBYMr0vb7ud48bnsKfyqr3GTGGXqzQt-gLtnicXs6rlw0Mkyn10" />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-[10px] font-bold font-label uppercase text-on-surface-variant">Zero_K</span>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-black text-on-surface-variant">04</span>
-              <div className="w-[50px] h-1 bg-surface-container-lowest rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-secondary to-primary" style={{ width: '5%' }}></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-4">
-        <button className="text-[#f2effb]/60 hover:text-[#96f8ff] hover:bg-[#96f8ff]/5 transition-all p-2 rounded-lg">
-          <span className="material-symbols-outlined">leaderboard</span>
-        </button>
-        <button className="text-[#f2effb]/60 hover:text-[#96f8ff] hover:bg-[#96f8ff]/5 transition-all p-2 rounded-lg">
-          <span className="material-symbols-outlined">settings</span>
-        </button>
-        <div className="w-10 h-10 rounded-full border-2 border-[#96f8ff]/40 overflow-hidden cursor-pointer active:scale-95 duration-200">
-          <img alt="User Power Core" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyYmnBaNe-nfYBnas5r-w-VkX9qXIkBaax_lPTl1-h5Oj4Spm7ZCW1yTt_XjwsIPzhvuNDv7akNwxATD9jO-osCzfq6YZFGHlJ61yYXy2byXFdw7QN8SHAFdpsxYYlS_2FH0z93fAwgdGDg_9e_yf_97d4CX-LTGwYhk0RjbSVv5PMxsRr7W0IccPJYHO5_v6XlZIwfNssRAQDJ1R58G-nUPCpEK_Y2DUFo1Ah1MhN2O_WntEDtso_eTRztzpGb2dBoNtlDXyTnws" />
-        </div>
-      </div>
-    </header>
+      )}
+    </>
   );
 }
