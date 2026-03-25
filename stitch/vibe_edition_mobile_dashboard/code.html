@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Snakes &amp; Ladders: Vibe Edition</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Manrope:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "outline": "#76747f",
+                        "tertiary-dim": "#beee00",
+                        "surface-container-low": "#13131c",
+                        "on-secondary": "#400040",
+                        "on-tertiary-fixed": "#3a4a00",
+                        "secondary-fixed-dim": "#ffa6f3",
+                        "primary-fixed-dim": "#00e2ed",
+                        "inverse-primary": "#006a6f",
+                        "surface-container-lowest": "#000000",
+                        "primary-container": "#00f1fd",
+                        "on-tertiary-fixed-variant": "#526900",
+                        "on-primary-fixed": "#004145",
+                        "secondary-container": "#a900a9",
+                        "error": "#ff716c",
+                        "surface-dim": "#0d0d16",
+                        "surface-container-highest": "#252531",
+                        "primary": "#96f8ff",
+                        "secondary-dim": "#ff51fa",
+                        "error-dim": "#d7383b",
+                        "on-primary-container": "#00565a",
+                        "on-error": "#490006",
+                        "surface": "#0d0d16",
+                        "on-error-container": "#ffa8a3",
+                        "on-primary-fixed-variant": "#006065",
+                        "primary-fixed": "#00f1fd",
+                        "on-background": "#f2effb",
+                        "on-surface": "#f2effb",
+                        "surface-bright": "#2b2b38",
+                        "inverse-surface": "#fcf8ff",
+                        "on-secondary-fixed-variant": "#920091",
+                        "secondary": "#ff51fa",
+                        "on-tertiary": "#516700",
+                        "on-primary": "#005f64",
+                        "tertiary-fixed": "#cafd00",
+                        "surface-tint": "#96f8ff",
+                        "outline-variant": "#484751",
+                        "on-secondary-fixed": "#620061",
+                        "on-tertiary-container": "#4a5e00",
+                        "on-surface-variant": "#acaab5",
+                        "background": "#0d0d16",
+                        "tertiary-fixed-dim": "#beee00",
+                        "surface-container-high": "#1f1f2a",
+                        "tertiary-container": "#cafd00",
+                        "error-container": "#9f0519",
+                        "tertiary": "#f3ffca",
+                        "primary-dim": "#00e2ed",
+                        "surface-variant": "#252531",
+                        "surface-container": "#191923",
+                        "secondary-fixed": "#ffbdf3",
+                        "inverse-on-surface": "#55545e",
+                        "on-secondary-container": "#fff5f9"
+                    },
+                    fontFamily: {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Manrope"],
+                        "label": ["Space Grotesk"]
+                    },
+                    borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .grid-pattern {
+            background-image: radial-gradient(circle at 2px 2px, rgba(150, 248, 255, 0.05) 1px, transparent 0);
+            background-size: 24px 24px;
+        }
+        .glass-card {
+            background: rgba(25, 25, 35, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(150, 248, 255, 0.1);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary/30 selection:text-primary min-h-screen overflow-x-hidden grid-pattern">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full border-b border-white/10 bg-slate-950/40 backdrop-blur-xl z-50 flex justify-between items-center px-6 h-16 w-full shadow-[0_0_15px_rgba(150,248,255,0.1)] flex-nowrap">
+<div class="flex items-center gap-3">
+<div class="relative">
+<div class="w-10 h-10 rounded-full border-2 border-primary shadow-[0_0_10px_#96f8ff] overflow-hidden bg-surface-container-highest">
+<img alt="Player Power Core" class="w-full h-full object-cover" data-alt="Futuristic neon cybernetic character portrait with glowing blue accents and high-tech visor on dark background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVUpNe1IPy8OSfWujtJMXp08SPrk-hhT6bwk5bt7_nIBwgI7R_pmE9QYeoafi8cBgIlmHc425JrFkk_xEI7LHxSEHbIoYxu-JN6wioiLFAxWajmTEkzpKY-GuLzB-yxcZ7HtcFs-UcG021efMJ8cHwkCGyAzugr1HCG7h83T7DLHx2DqIodFGOX0jnLrWC77EQAfsUyCLWk-q4y-K5s35ncrM0hDcKMM7NJTk0n9kMADK-C8ivWs774tVeS0sh3_4XRptUwwqUSNw"/>
+</div>
+<div class="absolute -bottom-1 -right-1 w-4 h-4 bg-primary rounded-full border-2 border-surface animate-pulse"></div>
+</div>
+<div class="flex flex-col">
+<span class="font-headline tracking-tighter uppercase text-primary text-xs font-bold">LUCKMETER: 88%</span>
+<div class="w-24 h-1 bg-surface-container-lowest rounded-full mt-1 overflow-hidden">
+<div class="h-full bg-gradient-to-r from-secondary to-primary w-[88%] shadow-[0_0_8px_#96f8ff]"></div>
+</div>
+</div>
+</div><h1 class="hidden sm:block font-headline text-lg font-black tracking-[0.2em] text-primary drop-shadow-[0_0_8px_rgba(150,248,255,0.5)] whitespace-nowrap">SNAKES &amp; LADDERS</h1>
+<h1 class="sm:hidden font-headline text-sm font-black tracking-[0.1em] text-primary drop-shadow-[0_0_5px_rgba(150,248,255,0.5)] whitespace-nowrap px-2">S&amp;L</h1><button class="text-primary hover:text-cyan-200 transition-colors duration-200 active:scale-95">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</header>
+<main class="pt-20 pb-32 px-4 flex flex-col items-center max-w-lg mx-auto">
+<!-- Dashboard Stats Row -->
+<div class="w-full flex justify-between items-end mb-6 px-2">
+<div class="flex flex-col">
+<span class="font-label text-[10px] text-outline-variant tracking-[0.2em] uppercase">Current Node</span>
+<span class="font-headline text-3xl font-bold text-on-surface">64</span>
+</div>
+<div class="text-right flex flex-col items-end">
+<span class="font-label text-[10px] text-secondary-dim tracking-[0.2em] uppercase">Danger Level</span>
+<span class="font-headline text-xl font-medium text-secondary">CRITICAL</span>
+</div>
+</div>
+<!-- 10x10 Game Grid -->
+<div class="w-full aspect-square glass-card rounded-xl p-1 shadow-[0_0_40px_rgba(0,0,0,0.4)] relative overflow-hidden">
+<!-- Snake Decorative Element (Visual only) -->
+<div class="absolute inset-0 pointer-events-none opacity-20">
+<svg class="w-full h-full stroke-secondary-dim stroke-[0.5] fill-none" viewbox="0 0 100 100">
+<path d="M 15,15 Q 40,5 65,35 T 85,85" stroke-dasharray="2 1"></path>
+</svg>
+</div>
+<div class="grid grid-cols-10 grid-rows-10 w-full h-full gap-[2px]">
+<!-- Generating 100 cells via looping pattern -->
+<!-- Note: In real app this would be dynamically generated -->
+<!-- Cell 100 to 1 -->
+<div class="bg-surface-container-high/40 flex items-center justify-center relative group cursor-pointer transition-all hover:bg-primary/10">
+<span class="font-label text-[8px] absolute top-1 left-1 text-outline-variant">100</span>
+<span class="material-symbols-outlined text-primary/40 text-sm">stars</span>
+</div>
+<!-- Random cells for layout demonstration -->
+<script>
+                    const gridContainer = document.currentScript.parentElement;
+                    for(let i=99; i>=1; i--) {
+                        const cell = document.createElement('div');
+                        const isActive = i === 64;
+                        const isSnake = [98, 75, 42].includes(i);
+                        const isLadder = [12, 35, 58].includes(i);
+                        
+                        cell.className = `relative flex items-center justify-center transition-all duration-300 border border-white/5 ${isActive ? 'bg-primary/20 shadow-[inset_0_0_15px_rgba(150,248,255,0.2)]' : 'bg-surface-container/30'}`;
+                        
+                        let content = `<span class="font-label text-[8px] absolute top-0.5 left-0.5 text-outline-variant/60">${i}</span>`;
+                        
+                        if(isActive) {
+                            content += `<div class="w-2.5 h-2.5 rounded-full bg-primary shadow-[0_0_10px_#96f8ff] animate-pulse"></div>`;
+                        } else if(isSnake) {
+                            content += `<span class="material-symbols-outlined text-secondary-dim/40 text-xs">trending_down</span>`;
+                        } else if(isLadder) {
+                            content += `<span class="material-symbols-outlined text-tertiary-dim/40 text-xs">keyboard_double_arrow_up</span>`;
+                        }
+                        
+                        cell.innerHTML = content;
+                        gridContainer.appendChild(cell);
+                    }
+                </script>
+</div>
+</div>
+<!-- Quick Action Menu -->
+<div class="w-full mt-8 grid grid-cols-2 gap-4">
+<button class="flex flex-col items-center justify-center p-4 glass-card rounded-2xl group active:scale-95 transition-all">
+<div class="w-12 h-12 rounded-full bg-secondary-container/20 flex items-center justify-center mb-2 group-hover:bg-secondary-container/40 transition-colors">
+<span class="material-symbols-outlined text-secondary">skull</span>
+</div>
+<span class="font-headline text-[10px] font-bold tracking-widest uppercase">Send Stinker</span>
+</button>
+<button class="flex flex-col items-center justify-center p-4 glass-card rounded-2xl group active:scale-95 transition-all">
+<div class="w-12 h-12 rounded-full bg-primary-container/20 flex items-center justify-center mb-2 group-hover:bg-primary-container/40 transition-colors">
+<span class="material-symbols-outlined text-primary">rocket_launch</span>
+</div>
+<span class="font-headline text-[10px] font-bold tracking-widest uppercase">Send Props</span>
+</button>
+</div>
+<!-- Recent Comms Feed -->
+<div class="w-full mt-8 space-y-3">
+<h3 class="font-headline text-[10px] tracking-[0.3em] text-outline-variant uppercase px-2">System Logs</h3>
+<div class="glass-card rounded-xl p-4 flex items-center gap-4">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest border border-white/10 flex-shrink-0 flex items-center justify-center">
+<span class="material-symbols-outlined text-tertiary text-sm">terminal</span>
+</div>
+<div class="flex flex-col overflow-hidden">
+<span class="text-xs font-medium text-on-surface truncate">OPERATOR_01 used HYPER_JUMP</span>
+<span class="text-[10px] text-outline-variant">22ms ago • GRID_SECTOR_64</span>
+</div>
+</div>
+</div>
+</main>
+<!-- NavigationDrawer (Chat Overlay - Hidden by default in visual, logic is here) -->
+<div class="fixed inset-y-0 left-0 z-[60] flex flex-col p-6 h-full w-80 border-r border-fuchsia-500/20 bg-slate-950/95 backdrop-blur-3xl shadow-[20px_0_50px_rgba(255,81,250,0.05)] transform -translate-x-full transition-transform duration-300" id="comms-drawer">
+<div class="flex items-center gap-4 mb-8">
+<div class="w-12 h-12 rounded-full border-2 border-secondary overflow-hidden">
+<img alt="User Core" class="w-full h-full object-cover" data-alt="Close up of a neon-lit cybernetic face with digital data overlays and vibrant magenta lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAQU0lOf8IXdz7Rq6qT8iUyhyvgXl-_A8MlKgAYFtPRb5tcWxgaEy7TFsZch_yI9RjY-67etA5esFJtTQzR_VblY9EpQ6vfBFbhksBJqtMdA_0MaYzfxymxFIkHHRPXjEC1ung8po8nIef6AiUhHCjYojUxky9Z98EFqbyzlxPTcwqWArtbPrdCB-67HDKeSHfhZfzqmrNBlpU0H29YS2sPSKRLpZwNT5UwWxRcQ1iXnEZDpcn0BNrG7zeiabxfkKiLD1IsXg-mh7o"/>
+</div>
+<div>
+<h2 class="font-headline font-black text-secondary text-lg">OPERATOR_01</h2>
+<p class="font-label text-[10px] text-slate-400 tracking-widest">RANK: ELITE</p>
+</div>
+</div>
+<nav class="flex-1 space-y-4">
+<div class="border-l-4 border-fuchsia-500 bg-fuchsia-500/5 text-fuchsia-400 font-bold p-3 flex items-center gap-3">
+<span class="material-symbols-outlined">public</span>
+<span class="font-headline text-xs tracking-widest">GLOBAL CHAT</span>
+</div>
+<div class="text-slate-400 hover:text-white hover:bg-white/5 transition-all p-3 flex items-center gap-3">
+<span class="material-symbols-outlined">group</span>
+<span class="font-headline text-xs tracking-widest uppercase">SQUAD COMMS</span>
+</div>
+<div class="text-slate-400 hover:text-white hover:bg-white/5 transition-all p-3 flex items-center gap-3">
+<span class="material-symbols-outlined">terminal</span>
+<span class="font-headline text-xs tracking-widest uppercase">SYSTEM LOGS</span>
+</div>
+</nav>
+<div class="mt-auto pt-6 border-t border-white/10 text-[10px] text-slate-500 font-label tracking-tighter">
+            LATENCY: 22MS
+        </div>
+</div>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-2 bg-slate-950/60 backdrop-blur-2xl rounded-t-3xl border-t border-white/5 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+<button class="flex flex-col items-center justify-center bg-cyan-400/10 text-cyan-400 rounded-xl py-2 px-4 shadow-[inset_0_0_8px_rgba(150,248,255,0.3)]">
+<span class="material-symbols-outlined mb-1">grid_view</span>
+<span class="font-headline text-[10px] font-bold uppercase tracking-widest">GRID</span>
+</button>
+<button class="flex flex-col items-center justify-center text-slate-500 py-2 px-4 hover:bg-white/5 transition-colors">
+<span class="material-symbols-outlined mb-1">forum</span>
+<span class="font-headline text-[10px] font-bold uppercase tracking-widest">COMMS</span>
+</button>
+<button class="flex flex-col items-center justify-center text-slate-500 py-2 px-4 hover:bg-white/5 transition-colors">
+<span class="material-symbols-outlined mb-1">inventory_2</span>
+<span class="font-headline text-[10px] font-bold uppercase tracking-widest">STASH</span>
+</button>
+<button class="flex flex-col items-center justify-center text-slate-500 py-2 px-4 hover:bg-white/5 transition-colors">
+<span class="material-symbols-outlined mb-1">insights</span>
+<span class="font-headline text-[10px] font-bold uppercase tracking-widest">INTEL</span>
+</button>
+</nav>
+</body></html>
