@@ -17,13 +17,13 @@ export default function SideNavBar({ messages, hasNewMessage }: SideNavBarProps)
 
   return (
     <>
-      {/* Toggle Button — always visible */}
+      {/* Toggle Button — Bottom Left to avoid UI overlap */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`fixed z-50 p-2 rounded-xl transition-all duration-300 ${
+        className={`fixed z-50 p-2 rounded-xl transition-all duration-300 shadow-lg ${
           isOpen
-            ? 'top-20 right-[17rem] md:right-[18.5rem] bg-secondary/20 text-secondary'
-            : 'top-20 right-3 bg-[#ff51fa]/20 text-[#ff51fa] hover:bg-[#ff51fa]/30'
+            ? 'bottom-20 left-[17rem] md:left-[18.5rem] bg-secondary/20 text-secondary'
+            : 'bottom-20 left-4 bg-[#ff51fa]/20 text-[#ff51fa] hover:bg-[#ff51fa]/30'
         }`}
       >
         <span className="material-symbols-outlined text-xl">
@@ -37,9 +37,9 @@ export default function SideNavBar({ messages, hasNewMessage }: SideNavBarProps)
         )}
       </button>
 
-      {/* Sidebar panel */}
-      <aside className={`fixed right-0 top-0 h-full z-40 flex flex-col bg-[#0d0d16]/95 backdrop-blur-2xl w-[16rem] md:w-72 border-l border-[#ff51fa]/20 shadow-[-10px_0_30px_rgba(255,81,250,0.05)] transition-transform duration-300 ${
-        isOpen ? 'translate-x-0' : 'translate-x-full'
+      {/* Sidebar panel — slides from Left now to keep toggle consistent */}
+      <aside className={`fixed left-0 top-0 h-full z-40 flex flex-col bg-[#0d0d16]/95 backdrop-blur-2xl w-[16rem] md:w-72 border-r border-[#ff51fa]/20 shadow-[10px_0_30px_rgba(255,81,250,0.05)] transition-transform duration-300 ${
+        isOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
         <div className="pt-20 px-4 md:px-6 pb-6 flex-grow flex flex-col">
           {/* Header */}
@@ -50,6 +50,9 @@ export default function SideNavBar({ messages, hasNewMessage }: SideNavBarProps)
               </h2>
               <p className="font-label text-[9px] text-[#f2effb]/40 uppercase tracking-widest">Signal: 100%</p>
             </div>
+            <button onClick={() => setIsOpen(false)} className="md:hidden text-[#ff51fa]">
+              <span className="material-symbols-outlined">chevron_left</span>
+            </button>
           </div>
 
           {/* Messages Area */}

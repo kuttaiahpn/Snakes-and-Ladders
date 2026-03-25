@@ -10,12 +10,13 @@ import { useGameState } from '../hooks/useGameState';
 
 interface GameScreenProps {
   onBackToLobby: () => void;
+  lobbyConfig: LobbyConfig;
 }
 
 const LOCAL_PLAYER_ID = 'p1';
 
-export default function GameScreen({ onBackToLobby }: GameScreenProps) {
-  const { gameState, loading, isMyTurn, currentPlayer, executeMove } = useGameState(LOCAL_PLAYER_ID);
+export default function GameScreen({ onBackToLobby, lobbyConfig }: GameScreenProps) {
+  const { gameState, loading, isMyTurn, currentPlayer, executeMove } = useGameState(LOCAL_PLAYER_ID, lobbyConfig);
 
   const [isRolling, setIsRolling] = useState(false);
   const [latestRoll, setLatestRoll] = useState<number | null>(null);
@@ -81,6 +82,7 @@ export default function GameScreen({ onBackToLobby }: GameScreenProps) {
     }
 
     const result = await executeMove(roll);
+    const luck = currentPlayer?.stats.luckyPercentage ?? 50;
 
     if (result.triggeredEvent === 'EXCEED_100') {
       pushMessage('SYSTEM', 'Roll exceeds 100. Vector lock active.');
@@ -92,7 +94,7 @@ export default function GameScreen({ onBackToLobby }: GameScreenProps) {
         playerName: currentPlayer?.name ?? 'Player',
         startTile: result.eventStart,
         endTile: result.eventEnd,
-        luckStat: 15,
+        luckStat: luck,
       });
       pushMessage('SHAKUNI [AI]', roast, true);
     } else if (result.triggeredEvent === 'LADDER_CLIMB') {
@@ -103,9 +105,25 @@ export default function GameScreen({ onBackToLobby }: GameScreenProps) {
         playerName: currentPlayer?.name ?? 'Player',
         startTile: result.eventStart,
         endTile: result.eventEnd,
-        luckStat: 85,
+        luckStat: luck,
       });
       pushMessage('SHAKUNI [AI]', props, true);
+    } else if (roll === 1) {
+      const stinker = await generateAIAssistantMessage({
+        type: 'STINKER',
+        playerName: currentPlayer?.name ?? 'Player',
+        luckStat: luck,
+      });
+      pushMessage('SHAKUNI [AI]', stinker, true);
+      setAnimatedPositions(prev => ({ ...prev, [LOCAL_PLAYER_ID]: result.landed }));
+    } else if (roll === 6) {
+      const props = await generateAIAssistantMessage({
+        type: 'PROPS',
+        playerName: currentPlayer?.name ?? 'Player',
+        luckStat: luck,
+      });
+      pushMessage('SHAKUNI [AI]', props, true);
+      setAnimatedPositions(prev => ({ ...prev, [LOCAL_PLAYER_ID]: result.landed }));
     } else {
       setAnimatedPositions(prev => ({ ...prev, [LOCAL_PLAYER_ID]: result.landed }));
     }

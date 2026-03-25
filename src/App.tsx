@@ -3,10 +3,20 @@ import { AnimatePresence } from 'framer-motion';
 import LobbyScreen from './screens/LobbyScreen';
 import GameScreen from './screens/GameScreen';
 
+export interface LobbyConfig {
+  playerCount: number;
+  playerNames: string[];
+}
+
 export default function App() {
   const [view, setView] = useState<'LOBBY' | 'GAME'>('LOBBY');
+  const [lobbyConfig, setLobbyConfig] = useState<LobbyConfig>({
+    playerCount: 1,
+    playerNames: ['NEON_WRAITH'],
+  });
 
-  const handleStartGame = () => {
+  const handleStartGame = (config: LobbyConfig) => {
+    setLobbyConfig(config);
     setView('GAME');
   };
 
@@ -21,7 +31,7 @@ export default function App() {
       )}
 
       {view === 'GAME' && (
-        <GameScreen key="game" onBackToLobby={handleBackToLobby} />
+        <GameScreen key="game" onBackToLobby={handleBackToLobby} lobbyConfig={lobbyConfig} />
       )}
     </AnimatePresence>
   );

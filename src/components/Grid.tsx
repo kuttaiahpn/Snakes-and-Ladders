@@ -99,27 +99,30 @@ export default function Grid({ isQuantumInverted, children }: GridProps) {
         {LADDERS.map((ladder, i) => {
           const start = tileToSvgCoord(ladder.start);
           const end = tileToSvgCoord(ladder.end);
+          // Calculate angle for slanted rungs
+          const dx = end.x - start.x;
+          const dy = end.y - start.y;
+          const angle = Math.atan2(dy, dx);
+          const perpX = Math.cos(angle + Math.PI/2) * 1.5;
+          const perpY = Math.sin(angle + Math.PI/2) * 1.5;
+
           return (
             <g key={`ladder-${i}`}>
-              {/* Left rail */}
-              <line x1={start.x - 1.5} y1={start.y} x2={end.x - 1.5} y2={end.y}
-                stroke={ladderColor} strokeWidth="0.6" opacity="0.7" />
-              {/* Right rail */}
-              <line x1={start.x + 1.5} y1={start.y} x2={end.x + 1.5} y2={end.y}
-                stroke={ladderColor} strokeWidth="0.6" opacity="0.7" />
-              {/* Rungs */}
-              {[0.2, 0.4, 0.6, 0.8].map((t, ri) => {
-                const rx = start.x + (end.x - start.x) * t;
-                const ry = start.y + (end.y - start.y) * t;
+              {/* Rails */}
+              <line x1={start.x - perpX} y1={start.y - perpY} x2={end.x - perpX} y2={end.y - perpY}
+                stroke={ladderColor} strokeWidth="0.8" opacity="0.8" />
+              <line x1={start.x + perpX} y1={start.y + perpY} x2={end.x + perpX} y2={end.y + perpY}
+                stroke={ladderColor} strokeWidth="0.8" opacity="0.8" />
+              {/* Rungs — spaced evenly */}
+              {[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9].map((t, ri) => {
+                const px = start.x + dx * t;
+                const py = start.y + dy * t;
                 return (
-                  <line key={ri} x1={rx - 1.5} y1={ry} x2={rx + 1.5} y2={ry}
-                    stroke={ladderColor} strokeWidth="0.4" opacity="0.5" />
+                  <line key={ri} x1={px - perpX} y1={py - perpY} x2={px + perpX} y2={py + perpY}
+                    stroke={ladderColor} strokeWidth="0.4" opacity="0.6" />
                 );
               })}
-              {/* Glow dot at top */}
-              <circle cx={end.x} cy={end.y} r="1.2" fill={ladderColor} opacity="0.8">
-                <animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite" />
-              </circle>
+              <circle cx={end.x} cy={end.y} r="1" fill={ladderColor} className="animate-pulse" />
             </g>
           );
         })}
@@ -128,21 +131,21 @@ export default function Grid({ isQuantumInverted, children }: GridProps) {
         {SNAKES.map((snake, i) => {
           const head = tileToSvgCoord(snake.head);
           const tail = tileToSvgCoord(snake.tail);
-          const midX = (head.x + tail.x) / 2 + (i % 2 === 0 ? 8 : -8);
+          // Alternating curve amplitudes
+          const amplitude = i % 2 === 0 ? 15 : -15;
+          const midX = (head.x + tail.x) / 2 + amplitude;
           const midY = (head.y + tail.y) / 2;
           return (
             <g key={`snake-${i}`}>
               <path
                 d={`M ${head.x} ${head.y} Q ${midX} ${midY} ${tail.x} ${tail.y}`}
-                fill="none" stroke={snakeColor} strokeWidth="1" opacity="0.7"
-                strokeLinecap="round"
+                fill="none" stroke={snakeColor} strokeWidth="1.5" opacity="0.9"
+                strokeLinecap="round" strokeDasharray="1,2"
               />
-              {/* Head indicator */}
-              <circle cx={head.x} cy={head.y} r="1.5" fill={snakeColor} opacity="0.9">
-                <animate attributeName="r" values="1;2;1" dur="1.5s" repeatCount="indefinite" />
-              </circle>
-              {/* Tail dot */}
-              <circle cx={tail.x} cy={tail.y} r="0.8" fill={snakeColor} opacity="0.5" />
+              {/* Snake Head */}
+              <circle cx={head.x} cy={head.y} r="1.5" fill="#ff4444" className="animate-pulse" />
+              {/* Snake Tail */}
+              <circle cx={tail.x} cy={tail.y} r="0.8" fill={snakeColor} opacity="0.6" />
             </g>
           );
         })}

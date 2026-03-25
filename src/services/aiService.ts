@@ -20,7 +20,7 @@ export async function generateAIAssistantMessage(triggerData: TriggerData): Prom
   }
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     
     let promptLogic = "";
     if (triggerData.type === 'SNAKE_HIT') {

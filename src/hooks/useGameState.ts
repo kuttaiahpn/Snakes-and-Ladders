@@ -4,6 +4,9 @@ import { db } from '../services/firebaseConfig';
 import { SNAKES, LADDERS } from '../utils/gameLogic';
 
 // ─── Firestore Document Schema ──────────────────────────────────────
+import { LobbyConfig } from '../App.tsx';
+
+// ─── Firestore Document Schema ──────────────────────────────────────
 export interface FirestorePlayer {
   id: string;
   name: string;
@@ -38,41 +41,49 @@ export interface GameState {
 }
 
 // ─── Default Initial State ──────────────────────────────────────────
-const DEFAULT_GAME_STATE: GameState = {
-  players: [
-    {
-      id: 'p1',
-      name: 'Vapor_01',
+const AVATARS = [
+  'https://lh3.googleusercontent.com/aida-public/AB6AXuBxCiLh-hMq9fmX0fKdhiPqILokcEKtcUXMT_WhGogzegehbZplz1o-j3r7sb2MVp5HFTw0AS0howSzTU4p3uosaR-Om2SLuNntabvFB0EcYS1ZTR5edG9waa0AoxR_NJg5HGajK1JVaDGE2mgijrihsGJvEAuzfBGRUAEwdtZmoSN_WHVSjMSfs0fLwaWYEAFn_2AjjlwxS3uFgqd1GtWLqwbYBYOqZ0TTO4yjitjWN_rzxGoAtQo72CP_Gh3S4648m8qilZLJw5I',
+  'https://lh3.googleusercontent.com/aida-public/AB6AXuCAXnMRRPS1wvWCO7nMKwr7ZVs8V38Q8nYxx4L42s_qTcIAoZtcqDF1EXZl1HUmGjM9EzA31y-cac1tXk0dJrVgAjoMCRZLmaZu7ZuR6UJ2pcaramkIzEEUsb-IZqYnMd1YsjsUetZmat1DDgX2nd4ZzVLuRu8TgmkfhsoZJCqsv9cLQ4d3__9mfgRAnxnG7yGMHNI35eeEDdMHwxYlbAzQD3jE1SE1oISibHpH3xz9DwTl5B7fIMqHsmJpZyd-nVxEUlDLmBh-QHs',
+  'https://lh3.googleusercontent.com/aida-public/AB6AXuA1ljG13B6ysMft7G0U3Gb-VI4BZPDt7pTyG8iyNYqoM4RR0VD6xCvxdjZaDiyG2aeeRvOYC-pxORb81J64NltiqSXeR0mqeIunm2pPZoGSjTD2aJ8rdpRt3tAsBPccMaNIfP73O4Cmi9SgK2ILqBoXyZf48g5YojEB5Hye8KmM6bwH7-w4JJN1qXor0HiVAl7lNXC7f8Yw83DBXkzOL_QmP2fh1Y-qf8J-WmR9B_ZnmGDrLl-4BcBd8A4aQh0z7Qb6T6XlyVBGX64',
+  'https://lh3.googleusercontent.com/aida-public/AB6AXuCDtdaWK8F0615sQMxP3VnFH7PqX8hfukTQNdFqCfI0mUAGilcNj76KgNop22uZqfNRn-jH46-xw39aZePvhuT64kc6lEWxlEaiTMdm6hgncgEyNaf-lSk5NFIcN9_SVUBD4idtu1DnxHfPQhsKLEWgqr25gU_pO3wc2uuGhk0RjbSVv5PMxsRr7W0IccPJYHO5_v6XlZIwfNssRAQDJ1R58G-nUPCpEK_Y2DUFo1Ah1MhN2O_WntEDtso_eTRztzpGb2dBoNtlDXyTnws'
+];
+
+const COLORS = ['#96f8ff', '#ff51fa', '#00ff41', '#ffea00'];
+
+const createInitialState = (config?: LobbyConfig): GameState => {
+  const players: FirestorePlayer[] = [];
+  const count = config?.playerCount ?? 2;
+  const names = config?.playerNames ?? ['Vapor_01', 'Neon_Soul', 'Zero_K', 'Moxie_R'];
+
+  for (let i = 0; i < count; i++) {
+    players.push({
+      id: `p${i + 1}`,
+      name: names[i] || `Operator_0${i + 1}`,
       position: 1,
-      avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBxCiLh-hMq9fmX0fKdhiPqILokcEKtcUXMT_WhGogzegehbZplz1o-j3r7sb2MVp5HFTw0AS0howSzTU4p3uosaR-Om2SLuNntabvFB0EcYS1ZTR5edG9waa0AoxR_NJg5HGajK1JVaDGE2mgijrihsGJvEAuzfBGRUAEwdtZmoSN_WHVSjMSfs0fLwaWYEAFn_2AjjlwxS3uFgqd1GtWLqwbYBYOqZ0TTO4yjitjWN_rzxGoAtQo72CP_Gh3S4648m8qilZLJw5I',
-      color: '#96f8ff',
+      avatarUrl: AVATARS[i % AVATARS.length],
+      color: COLORS[i % COLORS.length],
       stats: { snakesHit: 0, laddersClimbed: 0, powerUpsUsed: 0, totalRolls: 0, luckyPercentage: 0, unluckyPercentage: 0 },
-      isTurn: true,
-    },
-    {
-      id: 'p2',
-      name: 'Neon_Soul',
-      position: 1,
-      avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCAXnMRRPS1wvWCO7nMKwr7ZVs8V38Q8nYxx4L42s_qTcIAoZtcqDF1EXZl1HUmGjM9EzA31y-cac1tXk0dJrVgAjoMCRZLmaZu7ZuR6UJ2pcaramkIzEEUsb-IZqYnMd1YsjsUetZmat1DDgX2nd4ZzVLuRu8TgmkfhsoZJCqsv9cLQ4d3__9mfgRAnxnG7yGMHNI35eeEDdMHwxYlbAzQD3jE1SE1oISibHpH3xz9DwTl5B7fIMqHsmJpZyd-nVxEUlDLmBh-QHs',
-      color: '#ff51fa',
-      stats: { snakesHit: 0, laddersClimbed: 0, powerUpsUsed: 0, totalRolls: 0, luckyPercentage: 0, unluckyPercentage: 0 },
-      isTurn: false,
-    },
-  ],
-  gameStatus: 'ACTIVE',
-  isQuantumInverted: false,
-  quantumTurnsLeft: 0,
-  currentTurnIndex: 0,
-  turnCount: 0,
-  lastMove: null,
+      isTurn: i === 0,
+    });
+  }
+
+  return {
+    players,
+    gameStatus: 'ACTIVE',
+    isQuantumInverted: false,
+    quantumTurnsLeft: 0,
+    currentTurnIndex: 0,
+    turnCount: 0,
+    lastMove: null,
+  };
 };
 
 const GAME_DOC_PATH = 'games/VIBE_ROOM_01';
 
 // ─── The Hook ───────────────────────────────────────────────────────
 
-export function useGameState(localPlayerId: string) {
-  const [gameState, setGameState] = useState<GameState>(DEFAULT_GAME_STATE);
+export function useGameState(localPlayerId: string, lobbyConfig?: LobbyConfig) {
+  const [gameState, setGameState] = useState<GameState>(createInitialState(lobbyConfig));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -80,15 +91,20 @@ export function useGameState(localPlayerId: string) {
   useEffect(() => {
     const docRef = doc(db, GAME_DOC_PATH);
 
-    // Seed the document if it doesn't exist
+    // Seed the document if it doesn't exist OR if we have a fresh lobbyConfig
     const seedIfNeeded = async () => {
       try {
         const snap = await getDoc(docRef);
-        if (!snap.exists()) {
-          await setDoc(docRef, DEFAULT_GAME_STATE);
+        // If doc missing OR it's a fresh lobby start (we re-seed with custom names/count)
+        if (!snap.exists() || (lobbyConfig && snap.data()?.gameStatus === 'LOBBY')) {
+          await setDoc(docRef, createInitialState(lobbyConfig));
+        } else if (lobbyConfig) {
+          // If the game is already ACTIVE but we have a lobbyConfig, we force a re-seed to match user choices
+          // (Only do this if the user just came from the Lobby)
+          await setDoc(docRef, createInitialState(lobbyConfig));
         }
       } catch (e) {
-        console.warn('Firestore seed check failed (offline or no project). Using local fallback.', e);
+        console.warn('Firestore seed check failed.', e);
         setLoading(false);
       }
     };
@@ -110,7 +126,7 @@ export function useGameState(localPlayerId: string) {
     );
 
     return () => unsubscribe();
-  }, []);
+  }, [lobbyConfig]);
 
   // ── Derived helpers ────────────────────────────────────────────
   const isMyTurn = gameState.players[gameState.currentTurnIndex]?.id === localPlayerId;
@@ -120,7 +136,8 @@ export function useGameState(localPlayerId: string) {
   // ── Atomic Move via runTransaction ────────────────────────────
   const executeMove = async (roll: number): Promise<{ landed: number; triggeredEvent: string | null; eventStart: number; eventEnd: number }> => {
     const docRef = doc(db, GAME_DOC_PATH);
-    let result = { landed: 0, triggeredEvent: null as string | null, eventStart: 0, eventEnd: 0 };
+    const startPosFallback = currentPlayer?.position ?? 1;
+    let result = { landed: startPosFallback, triggeredEvent: null as string | null, eventStart: startPosFallback, eventEnd: startPosFallback };
 
     try {
       await runTransaction(db, async (transaction) => {
