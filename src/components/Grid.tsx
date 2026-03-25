@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 
-export default function Grid() {
+export default function Grid({ children }: { children?: ReactNode }) {
   const cells = Array.from({ length: 100 }, (_, i) => 100 - i);
 
   return (
@@ -15,7 +15,7 @@ export default function Grid() {
             >
               <span className="font-label text-[9px] text-on-surface-variant group-hover:text-primary">{cell}</span>
               
-              {/* Examples of specific cell states based on ID - mockup logic */}
+              {/* Examples of specific cell states based on ID - visual only */}
               {cell === 100 && (
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                   <span className="material-symbols-outlined text-primary text-lg">trophy</span>
@@ -24,13 +24,6 @@ export default function Grid() {
               {cell === 98 && (
                 <div className="absolute inset-0 flex items-center justify-center bg-secondary/5 border-secondary/20 border">
                   <span className="material-symbols-outlined text-secondary animate-pulse">storm</span>
-                </div>
-              )}
-              {cell === 42 && (
-                <div className="absolute inset-0 flex items-center justify-center border-2 border-primary bg-primary/10 shadow-[inset_0_0_15px_rgba(150,248,255,0.3)]">
-                  <div className="w-6 h-6 rounded-full border-2 border-primary neon-glow-primary animate-bounce">
-                    <img alt="Active Player" className="w-full h-full rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCAXnMRRPS1wvWCO7nMKwr7ZVs8V38Q8nYxx4L42s_qTcIAoZtcqDF1EXZl1HUmGjM9EzA31y-cac1tXk0dJrVgAjoMCRZLmaZu7ZuR6UJ2pcaramkIzEEUsb-IZqYnMd1YsjsUetZmat1DDgX2nd4ZzVLuRu8TgmkfhsoZJCqsv9cLQ4d3__9mfgRAnxnG7yGMHNI35eeEDdMHwxYlbAzQD3jE1SE1oISibHpH3xz9DwTl5B7fIMqHsmJpZyd-nVxEUlDLmBh-QHs" />
-                  </div>
                 </div>
               )}
               {cell === 43 && (
@@ -53,6 +46,7 @@ export default function Grid() {
         <path d="M 85 15 Q 95 35 75 45 T 85 85" fill="none" stroke="#ff51fa" strokeWidth="0.8" strokeDasharray="2,1"></path>
         <circle cx="85" cy="85" r="1.5" fill="#ff51fa"></circle>
       </svg>
+      {children}
     </div>
   );
 }

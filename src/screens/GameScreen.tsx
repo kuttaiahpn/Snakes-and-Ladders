@@ -1,14 +1,80 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import TopAppBar from '../components/TopAppBar';
 import SideNavBar from '../components/SideNavBar';
 import Grid from '../components/Grid';
+import PlayerToken from '../components/PlayerToken';
+import { Player, SNAKES, LADDERS } from '../utils/gameLogic';
 
 interface GameScreenProps {
   onBackToLobby: () => void;
 }
 
+// Mock primary player
+const INITIAL_PLAYER: Player = {
+  id: 'p1',
+  name: 'Vapor_01',
+  position: 1,
+  avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBxCiLh-hMq9fmX0fKdhiPqILokcEKtcUXMT_WhGogzegehbZplz1o-j3r7sb2MVp5HFTw0AS0howSzTU4p3uosaR-Om2SLuNntabvFB0EcYS1ZTR5edG9waa0AoxR_NJg5HGajK1JVaDGE2mgijrihsGJvEAuzfBGRUAEwdtZmoSN_WHVSjMSfs0fLwaWYEAFn_2AjjlwxS3uFgqd1GtWLqwbYBYOqZ0TTO4yjitjWN_rzxGoAtQo72CP_Gh3S4648m8qilZLJw5I',
+  color: '#96f8ff'
+};
+
 export default function GameScreen({ onBackToLobby }: GameScreenProps) {
+  const [player, setPlayer] = useState<Player>(INITIAL_PLAYER);
+  const [isRolling, setIsRolling] = useState(false);
+  const [latestRoll, setLatestRoll] = useState<number | null>(null);
+
+  const movePlayer = async (steps: number) => {
+    let currentPos = player.position;
+    
+    // Check if the roll exceeds 100
+    if (currentPos + steps > 100) {
+      console.log('Roll exceeds 100. Staying put.');
+      return; 
+    }
+
+    // Step-by-step animation loop
+    for (let i = 1; i <= steps; i++) {
+        currentPos += 1;
+        setPlayer(prev => ({ ...prev, position: currentPos }));
+        
+        // Wait 200ms between steps for "walking" effect
+        await new Promise(resolve => setTimeout(resolve, 200));
+    }
+
+    // Post-Movement Check
+    checkSnakesAndLadders(currentPos);
+  };
+
+  const checkSnakesAndLadders = async (position: number) => {
+    // Small delay before sudden slide/climb
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    const snake = SNAKES.find(s => s.head === position);
+    if (snake) {
+      setPlayer(prev => ({ ...prev, position: snake.tail }));
+      return;
+    }
+
+    const ladder = LADDERS.find(l => l.start === position);
+    if (ladder) {
+      setPlayer(prev => ({ ...prev, position: ladder.end }));
+      return;
+    }
+  };
+
+  const handleRollDice = async () => {
+    if (isRolling) return;
+    setIsRolling(true);
+
+    const roll = Math.floor(Math.random() * 6) + 1;
+    setLatestRoll(roll);
+    
+    await movePlayer(roll);
+    
+    setIsRolling(false);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, filter: 'blur(10px)', scale: 0.9 }}
@@ -26,7 +92,7 @@ export default function GameScreen({ onBackToLobby }: GameScreenProps) {
         <div className="w-full max-w-4xl flex justify-between items-end mb-6">
           <div className="flex flex-col">
             <span className="font-label text-[10px] text-primary/60 tracking-[0.2em] uppercase">Current Vector</span>
-            <h1 className="font-headline text-4xl font-black text-on-background -mt-1 tracking-tight">TILE 42</h1>
+            <h1 className="font-headline text-4xl font-black text-on-background -mt-1 tracking-tight">TILE {player.position}</h1>
           </div>
           
           <div className="flex flex-col items-end gap-2">
@@ -42,16 +108,26 @@ export default function GameScreen({ onBackToLobby }: GameScreenProps) {
           </div>
         </div>
 
-        {/* Central Game Grid (10x10) */}
-        <Grid />
+        {/* Central Game Grid (10x10) with Player Token overlay */}
+        <Grid>
+          <div className="absolute inset-0 pointer-events-none p-1 z-30">
+            <PlayerToken player={player} />
+          </div>
+        </Grid>
 
         {/* Action HUD */}
         <div className="mt-8 flex items-center gap-6">
-          <button className="group relative px-8 py-4 rounded-xl overflow-hidden transition-all active:scale-95">
+          <button 
+            disabled={isRolling}
+            onClick={handleRollDice} 
+            className={`group relative px-8 py-4 rounded-xl overflow-hidden transition-all active:scale-95 ${isRolling ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
             <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary-container"></div>
             <div className="relative flex items-center gap-3">
               <span className="material-symbols-outlined text-on-primary font-bold">casino</span>
-              <span className="font-headline font-black text-on-primary text-xl tracking-tight">ENGAGE_DICE</span>
+              <span className="font-headline font-black text-on-primary text-xl tracking-tight">
+                {isRolling ? 'ROLLING...' : (latestRoll ? `ROLLED ${latestRoll}` : 'ENGAGE_DICE')}
+              </span>
             </div>
             <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
           </button>
