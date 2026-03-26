@@ -140,14 +140,28 @@ export function useGameState(localPlayerId: string, lobbyConfig?: LobbyConfig) {
     let result = { landed: startPosFallback, triggeredEvent: null as string | null, eventStart: startPosFallback, eventEnd: startPosFallback };
 
     try {
+      console.log(`[FIREBASE] Initiating move transaction for ${localPlayerId}, roll: ${roll}`);
       await runTransaction(db, async (transaction) => {
         const snap = await transaction.get(docRef);
-        if (!snap.exists()) throw new Error('Game document missing');
+        let data: GameState;
+        
+        if (!snap.exists()) {
+          console.warn('[FIREBASE] Document missing during transaction. Seeding new state.');
+          data = createInitialState(lobbyConfig);
+          transaction.set(docRef, data);
+        } else {
+          data = snap.data() as GameState;
+        }
 
-        const data = snap.data() as GameState;
         const playerIndex = data.players.findIndex(p => p.id === localPlayerId);
-        if (playerIndex === -1) throw new Error('Player not in game');
-        if (data.currentTurnIndex !== playerIndex) throw new Error('Not your turn');
+        if (playerIndex === -1) {
+          console.error(`[FIREBASE] Player ${localPlayerId} not found in player list:`, data.players);
+          throw new Error('Player not in game');
+        }
+        if (data.currentTurnIndex !== playerIndex) {
+          console.warn(`[FIREBASE] Not your turn. Current index: ${data.currentTurnIndex}, Your index: ${playerIndex}`);
+          throw new Error('Not your turn');
+        }
 
         const player = { ...data.players[playerIndex], stats: { ...data.players[playerIndex].stats } };
         const startPos = player.position;

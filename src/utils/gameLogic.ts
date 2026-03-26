@@ -16,7 +16,7 @@ export const LADDERS = [
   { start: 28, end: 84 },
   { start: 51, end: 67 },
   { start: 71, end: 91 },
-  { start: 80, end: 100 },
+  { start: 60, end: 81 },
 ];
 
 /**

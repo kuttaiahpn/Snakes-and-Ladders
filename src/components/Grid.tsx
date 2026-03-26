@@ -76,7 +76,7 @@ export default function Grid({ isQuantumInverted, children }: GridProps) {
                 ${isSpecial ? bgClass : 'border-outline-variant/5'}
                 ${cell % 2 === 0 ? 'bg-surface-container/60' : 'bg-surface-container-high/40'}`}
             >
-              <span className="font-label text-[11px] md:text-xs font-bold text-on-surface-variant/70 group-hover:text-primary leading-none">
+              <span className="font-headline text-sm md:text-base font-black opacity-90 drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]">
                 {cell}
               </span>
               {marker && (
