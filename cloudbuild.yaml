@@ -32,3 +32,12 @@ steps:
 
 images:
   - 'gcr.io/$PROJECT_ID/snakes-ladders-vibe:$COMMIT_SHA'
+
+substitutions:
+  _VITE_FIREBASE_API_KEY: 'AIzaSyDYFTH1BKC0do77YOTcPPC5PTpvPameCP4'
+  _VITE_FIREBASE_AUTH_DOMAIN: 'princeofearth.firebaseapp.com'
+  _VITE_FIREBASE_PROJECT_ID: 'princeofearth'
+  _VITE_FIREBASE_STORAGE_BUCKET: 'princeofearth.firebasestorage.app'
+  _VITE_FIREBASE_MESSAGING_SENDER_ID: '314593444784'
+  _VITE_FIREBASE_APP_ID: '1:314593444784:web:e8449acce7593207848c75'
+  _VITE_GEMINI_API_KEY: 'AIzaSyBz-gw-8RvMEvGypCzDOzTkQcLxo_WIbVg'
