@@ -10,5 +10,10 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID || '',
 };
 
+// Runtime Validation for Build-time Injection
+if (!firebaseConfig.projectId || firebaseConfig.projectId === '') {
+  console.error('[FIREBASE_CRITICAL] Project ID is missing! Ensure VITE_FIREBASE_PROJECT_ID is passed as a BUILD ARG in Docker/Cloud Build.');
+}
+
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);

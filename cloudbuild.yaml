@@ -1,0 +1,34 @@
+steps:
+  # 1. Build the Docker image with Build-Args from Substitutions
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '--build-arg', 'VITE_FIREBASE_API_KEY=$_VITE_FIREBASE_API_KEY',
+      '--build-arg', 'VITE_FIREBASE_AUTH_DOMAIN=$_VITE_FIREBASE_AUTH_DOMAIN',
+      '--build-arg', 'VITE_FIREBASE_PROJECT_ID=$_VITE_FIREBASE_PROJECT_ID',
+      '--build-arg', 'VITE_FIREBASE_STORAGE_BUCKET=$_VITE_FIREBASE_STORAGE_BUCKET',
+      '--build-arg', 'VITE_FIREBASE_MESSAGING_SENDER_ID=$_VITE_FIREBASE_MESSAGING_SENDER_ID',
+      '--build-arg', 'VITE_FIREBASE_APP_ID=$_VITE_FIREBASE_APP_ID',
+      '--build-arg', 'VITE_GEMINI_API_KEY=$_VITE_GEMINI_API_KEY',
+      '-t', 'gcr.io/$PROJECT_ID/snakes-ladders-vibe:$COMMIT_SHA',
+      '-t', 'gcr.io/$PROJECT_ID/snakes-ladders-vibe:latest',
+      '.'
+    ]
+
+  # 2. Push the image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/snakes-ladders-vibe:$COMMIT_SHA']
+
+  # 3. Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args: [
+      'run', 'deploy', 'snakes-ladders-vibe',
+      '--image', 'gcr.io/$PROJECT_ID/snakes-ladders-vibe:$COMMIT_SHA',
+      '--region', 'us-central1',
+      '--platform', 'managed',
+      '--allow-unauthenticated'
+    ]
+
+images:
+  - 'gcr.io/$PROJECT_ID/snakes-ladders-vibe:$COMMIT_SHA'
