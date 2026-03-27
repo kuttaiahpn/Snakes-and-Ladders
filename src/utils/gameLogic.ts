@@ -6,11 +6,13 @@ export const SNAKES = [
   { head: 64, tail: 36 },
   { head: 48, tail: 30 },
   { head: 16, tail: 6 },
+  { head: 35, tail: 7 },
+  { head: 58, tail: 4 },
+  { head: 58, tail: 4 },
 ];
 
 export const LADDERS = [
   { start: 2, end: 38 },
-  { start: 7, end: 14 },
   { start: 8, end: 31 },
   { start: 21, end: 42 },
   { start: 28, end: 84 },

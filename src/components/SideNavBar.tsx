@@ -38,20 +38,20 @@ export default function SideNavBar({ messages, hasNewMessage }: SideNavBarProps)
       </button>
 
       {/* Sidebar panel — slides from Left now to keep toggle consistent */}
-      <aside className={`fixed left-0 top-0 h-full z-40 flex flex-col bg-[#0d0d16]/95 backdrop-blur-2xl w-[16rem] md:w-72 border-r border-[#ff51fa]/20 shadow-[10px_0_30px_rgba(255,81,250,0.05)] transition-transform duration-300 ${
-        isOpen ? 'translate-x-0' : '-translate-x-full'
+      <aside className={`fixed right-0 top-0 h-full z-40 flex flex-col bg-[#0d0d16]/95 backdrop-blur-2xl w-[16rem] md:w-72 border-l border-[#ff51fa]/20 shadow-[-10px_0_30px_rgba(255,81,250,0.05)] transition-transform duration-300 ${
+        isOpen ? 'translate-x-0' : 'translate-x-full'
       }`}>
         <div className="pt-20 px-4 md:px-6 pb-6 flex-grow flex flex-col">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="font-headline text-base font-bold flex items-center gap-2 text-[#ff51fa]">
-                COMMS_LINK
+                Chat Zone
               </h2>
               <p className="font-label text-[9px] text-[#f2effb]/40 uppercase tracking-widest">Signal: 100%</p>
             </div>
             <button onClick={() => setIsOpen(false)} className="md:hidden text-[#ff51fa]">
-              <span className="material-symbols-outlined">chevron_left</span>
+              <span className="material-symbols-outlined">chevron_right</span>
             </button>
           </div>
 

@@ -76,17 +76,17 @@ export default function Grid({ isQuantumInverted, children }: GridProps) {
                 ${isSpecial ? bgClass : 'border-outline-variant/5'}
                 ${cell % 2 === 0 ? 'bg-surface-container/60' : 'bg-surface-container-high/40'}`}
             >
-              <span className="font-headline text-sm md:text-base font-black opacity-90 drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]">
-                {cell}
+              <span className="font-headline text-[10px] md:text-sm font-black opacity-90 drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]">
+                {cell <= 1 || cell >= 100 ? '' : cell}
               </span>
               {marker && (
-                <span className="text-[10px] md:text-xs leading-none self-end">{marker}</span>
+                <span className="text-[8px] md:text-[10px] leading-none self-end">{marker}</span>
               )}
               {cell === 100 && (
-                <span className="absolute inset-0 flex items-center justify-center text-sm">🏆</span>
+                <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-secondary">HOME</span>
               )}
               {cell === 1 && (
-                <span className="absolute inset-0 flex items-center justify-center text-[10px] text-primary/50">START</span>
+                <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-primary">START</span>
               )}
             </div>
           );
@@ -110,16 +110,16 @@ export default function Grid({ isQuantumInverted, children }: GridProps) {
             <g key={`ladder-${i}`}>
               {/* Rails */}
               <line x1={start.x - perpX} y1={start.y - perpY} x2={end.x - perpX} y2={end.y - perpY}
-                stroke={ladderColor} strokeWidth="0.8" opacity="0.8" />
+                stroke={ladderColor} strokeWidth="0.6" opacity="0.8" />
               <line x1={start.x + perpX} y1={start.y + perpY} x2={end.x + perpX} y2={end.y + perpY}
-                stroke={ladderColor} strokeWidth="0.8" opacity="0.8" />
+                stroke={ladderColor} strokeWidth="0.6" opacity="0.8" />
               {/* Rungs — spaced evenly */}
               {[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9].map((t, ri) => {
                 const px = start.x + dx * t;
                 const py = start.y + dy * t;
                 return (
                   <line key={ri} x1={px - perpX} y1={py - perpY} x2={px + perpX} y2={py + perpY}
-                    stroke={ladderColor} strokeWidth="0.4" opacity="0.6" />
+                    stroke={ladderColor} strokeWidth="0.3" opacity="0.6" />
                 );
               })}
               <circle cx={end.x} cy={end.y} r="1" fill={ladderColor} className="animate-pulse" />
