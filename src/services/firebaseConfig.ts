@@ -14,24 +14,37 @@ const firebaseConfig = {
 
 // Runtime Validation for Build-time Injection
 if (!firebaseConfig.projectId || firebaseConfig.projectId === '') {
-  console.error('[FIREBASE_CRITICAL] Project ID is missing! Ensure VITE_FIREBASE_PROJECT_ID is passed as a BUILD ARG in Docker/Cloud Build.');
+  console.warn('[FIREBASE_WARNING] Project ID is missing! Firebase features will be disabled. Check your CI/CD Build Args.');
 }
 
-const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
-
-// Initialize Analytics safely
+let app;
+let db = null;
 let analytics = null;
-if (typeof window !== 'undefined') {
-  analytics = getAnalytics(app);
-  console.log('[FIREBASE] Analytics initialized for Hackathon tracking.');
+
+try {
+  if (firebaseConfig.projectId) {
+    app = initializeApp(firebaseConfig);
+    db = getFirestore(app);
+    
+    // Initialize Analytics safely
+    if (typeof window !== 'undefined' && firebaseConfig.measurementId) {
+      analytics = getAnalytics(app);
+      console.log('[FIREBASE] Analytics initialized for Hackathon tracking.');
+    }
+  }
+} catch (error) {
+  console.error('[FIREBASE_ERROR] Failed to initialize Firebase:', error);
 }
 
-export { analytics };
+export { db, analytics };
 
 // Helper to log hackathon events
 export const trackGameEvent = (name: string, params?: object) => {
-  if (analytics) {
-    logEvent(analytics, name, params);
+  try {
+    if (analytics) {
+      logEvent(analytics, name, params);
+    }
+  } catch (e) {
+    console.warn('[FIREBASE] Event tracking failed:', e);
   }
 };

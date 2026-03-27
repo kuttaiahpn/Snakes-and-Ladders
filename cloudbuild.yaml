@@ -9,6 +9,7 @@ steps:
       '--build-arg', 'VITE_FIREBASE_STORAGE_BUCKET=$_VITE_FIREBASE_STORAGE_BUCKET',
       '--build-arg', 'VITE_FIREBASE_MESSAGING_SENDER_ID=$_VITE_FIREBASE_MESSAGING_SENDER_ID',
       '--build-arg', 'VITE_FIREBASE_APP_ID=$_VITE_FIREBASE_APP_ID',
+      '--build-arg', 'VITE_FIREBASE_MEASUREMENT_ID=$_VITE_FIREBASE_MEASUREMENT_ID',
       '--build-arg', 'VITE_GEMINI_API_KEY=$_VITE_GEMINI_API_KEY',
       '-t', 'gcr.io/$PROJECT_ID/snakes-ladders-vibe:$COMMIT_SHA',
       '-t', 'gcr.io/$PROJECT_ID/snakes-ladders-vibe:latest',
@@ -40,4 +41,5 @@ substitutions:
   _VITE_FIREBASE_STORAGE_BUCKET: 'princeofearth.firebasestorage.app'
   _VITE_FIREBASE_MESSAGING_SENDER_ID: '314593444784'
   _VITE_FIREBASE_APP_ID: '1:314593444784:web:e8449acce7593207848c75'
+  _VITE_FIREBASE_MEASUREMENT_ID: 'G-XF2R6Z8J1G'
   _VITE_GEMINI_API_KEY: 'AIzaSyBz-gw-8RvMEvGypCzDOzTkQcLxo_WIbVg'
