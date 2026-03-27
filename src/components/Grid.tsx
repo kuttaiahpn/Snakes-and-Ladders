@@ -53,7 +53,11 @@ export default function Grid({ isQuantumInverted, children }: GridProps) {
   const gridCss = isQuantumInverted ? 'hue-rotate-180 animate-pulse transition-all duration-1000' : 'transition-all duration-1000';
 
   return (
-    <div className={`relative w-full max-w-[min(60vh,95vw)] aspect-square bg-surface-container-lowest border border-primary/20 rounded-xl overflow-hidden shadow-[0_0_50px_rgba(150,248,255,0.1)] p-1 ${gridCss}`}>
+    <div 
+      role="grid"
+      aria-label="Snakes and Ladders Game Board"
+      className={`relative w-full max-w-[min(60vh,95vw)] aspect-square bg-surface-container-lowest border-2 border-primary shadow-[0_0_20px_rgba(var(--primary-rgb),0.6)] rounded-xl overflow-hidden p-1 ${gridCss}`}
+    >
       <div className="grid grid-cols-10 grid-rows-10 h-full w-full gap-0.5 relative z-10">
         {cells.map((cell) => {
           const isSnakeHead = snakeHeadTiles.has(cell);
@@ -64,29 +68,48 @@ export default function Grid({ isQuantumInverted, children }: GridProps) {
 
           let bgClass = '';
           let marker = '';
-          if (isSnakeHead) { bgClass = 'bg-red-900/30 border-red-500/40'; marker = '🐍⬇'; }
+          let ariaLabel = `Tile ${cell}`;
+          
+          if (isSnakeHead) { 
+            bgClass = 'bg-red-900/30 border-red-500/40'; 
+            marker = '🐍⬇'; 
+            ariaLabel += ", Snake head, slides down";
+          }
           else if (isSnakeTail) { bgClass = 'bg-red-900/15 border-red-500/20'; marker = '🐍'; }
-          else if (isLadderStart) { bgClass = 'bg-green-900/30 border-green-500/40'; marker = '🪜⬆'; }
+          else if (isLadderStart) { 
+            bgClass = 'bg-green-900/30 border-green-500/40'; 
+            marker = '🪜⬆'; 
+            ariaLabel += ", Ladder start, climbs up";
+          }
           else if (isLadderEnd) { bgClass = 'bg-green-900/15 border-green-500/20'; marker = '🪜'; }
+
+          if (cell === 1) ariaLabel += ", Start position";
+          if (cell === 100) ariaLabel += ", Finish line";
 
           return (
             <div
               key={cell}
-              className={`relative p-0.5 border group hover:border-primary/40 transition-colors cursor-crosshair flex flex-col items-start justify-between
-                ${isSpecial ? bgClass : 'border-outline-variant/5'}
+              role="gridcell"
+              aria-label={ariaLabel}
+              tabIndex={0}
+              className={`relative p-0.5 border-2 shadow-[0_0_8px_rgba(var(--primary-rgb),0.3)] group hover:border-primary transition-all cursor-crosshair flex flex-col items-start justify-between focus:ring-2 focus:ring-primary focus:outline-none
+                ${isSpecial ? bgClass : 'border-outline-variant/10'}
                 ${cell % 2 === 0 ? 'bg-surface-container/60' : 'bg-surface-container-high/40'}`}
             >
-              <span className="font-headline text-[10px] md:text-sm font-black opacity-90 drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]">
+              <span aria-hidden="true" className="font-headline text-[8px] md:text-xs font-black opacity-90 drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]">
                 {cell <= 1 || cell >= 100 ? '' : cell}
               </span>
               {marker && (
-                <span className="text-[8px] md:text-[10px] leading-none self-end">{marker}</span>
+                <span aria-hidden="true" className="text-[7px] md:text-[9px] leading-none self-end">{marker}</span>
               )}
               {cell === 100 && (
-                <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-secondary">HOME</span>
+                <div aria-hidden="true" className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
+                  <span className="text-sm md:text-lg drop-shadow-[0_0_10px_rgba(255,215,0,0.8)]">🏆</span>
+                  <span className="text-[8px] font-black text-secondary-container bg-secondary/20 px-1 rounded shadow-[0_0_5px_rgba(var(--secondary-rgb),0.5)]">HOME</span>
+                </div>
               )}
               {cell === 1 && (
-                <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-primary">START</span>
+                <span aria-hidden="true" className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-primary">START</span>
               )}
             </div>
           );
@@ -110,19 +133,19 @@ export default function Grid({ isQuantumInverted, children }: GridProps) {
             <g key={`ladder-${i}`}>
               {/* Rails */}
               <line x1={start.x - perpX} y1={start.y - perpY} x2={end.x - perpX} y2={end.y - perpY}
-                stroke={ladderColor} strokeWidth="0.6" opacity="0.8" />
+                stroke={ladderColor} strokeWidth="0.4" opacity="0.8" />
               <line x1={start.x + perpX} y1={start.y + perpY} x2={end.x + perpX} y2={end.y + perpY}
-                stroke={ladderColor} strokeWidth="0.6" opacity="0.8" />
+                stroke={ladderColor} strokeWidth="0.4" opacity="0.8" />
               {/* Rungs — spaced evenly */}
               {[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9].map((t, ri) => {
                 const px = start.x + dx * t;
                 const py = start.y + dy * t;
                 return (
                   <line key={ri} x1={px - perpX} y1={py - perpY} x2={px + perpX} y2={py + perpY}
-                    stroke={ladderColor} strokeWidth="0.3" opacity="0.6" />
+                    stroke={ladderColor} strokeWidth="0.2" opacity="0.6" />
                 );
               })}
-              <circle cx={end.x} cy={end.y} r="1" fill={ladderColor} className="animate-pulse" />
+              <circle cx={end.x} cy={end.y} r="0.8" fill={ladderColor} className="animate-pulse" />
             </g>
           );
         })}
@@ -139,13 +162,13 @@ export default function Grid({ isQuantumInverted, children }: GridProps) {
             <g key={`snake-${i}`}>
               <path
                 d={`M ${head.x} ${head.y} Q ${midX} ${midY} ${tail.x} ${tail.y}`}
-                fill="none" stroke={snakeColor} strokeWidth="1.5" opacity="0.9"
+                fill="none" stroke={snakeColor} strokeWidth="1" opacity="0.9"
                 strokeLinecap="round" strokeDasharray="1,2"
               />
               {/* Snake Head */}
-              <circle cx={head.x} cy={head.y} r="1.5" fill="#ff4444" className="animate-pulse" />
+              <circle cx={head.x} cy={head.y} r="1.2" fill="#ff4444" className="animate-pulse" />
               {/* Snake Tail */}
-              <circle cx={tail.x} cy={tail.y} r="0.8" fill={snakeColor} opacity="0.6" />
+              <circle cx={tail.x} cy={tail.y} r="0.6" fill={snakeColor} opacity="0.6" />
             </g>
           );
         })}

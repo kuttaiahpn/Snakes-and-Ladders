@@ -14,8 +14,9 @@ const AVATARS = [
 ];
 
 export default function LobbyScreen({ onStartGame }: LobbyScreenProps) {
-  const [selectedPlayers, setSelectedPlayers] = useState(1);
+  const [selectedPlayers, setSelectedPlayers] = useState(2);
   const [playerNames, setPlayerNames] = useState(['NEON_WRAITH', '', '', '']);
+  const [isLocal, setIsLocal] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -70,11 +71,19 @@ export default function LobbyScreen({ onStartGame }: LobbyScreenProps) {
       <header className="fixed top-0 w-full z-50 flex justify-between items-center px-6 py-4 bg-transparent backdrop-blur-sm">
         <div className="text-xl font-bold tracking-tighter text-[#96f8ff] uppercase">VIBE EDITION</div>
         <div className="flex gap-6 items-center">
-          <button onClick={toggleMute} className="text-[#96f8ff] hover:text-[#ff51fa] transition-all">
-            <span className="material-symbols-outlined">{isMuted ? 'volume_off' : 'volume_up'}</span>
+          <button 
+            onClick={toggleMute} 
+            className="text-[#96f8ff] hover:text-[#ff51fa] transition-all"
+            aria-label={isMuted ? "Unmute music" : "Mute music"}
+          >
+            <span className="material-symbols-outlined" aria-hidden="true">{isMuted ? 'volume_off' : 'volume_up'}</span>
           </button>
-          <button onClick={() => setShowSettings(!showSettings)} className="text-[#96f8ff] hover:text-[#ff51fa] transition-all">
-            <span className="material-symbols-outlined">settings</span>
+          <button 
+            onClick={() => setShowSettings(!showSettings)} 
+            className="text-[#96f8ff] hover:text-[#ff51fa] transition-all"
+            aria-label="Open settings"
+          >
+            <span className="material-symbols-outlined" aria-hidden="true">settings</span>
           </button>
           <div className="w-10 h-10 rounded-full border-2 border-primary/40 overflow-hidden">
             <img src={AVATARS[0]} className="w-full h-full object-cover" alt="Profile" />
@@ -97,51 +106,75 @@ export default function LobbyScreen({ onStartGame }: LobbyScreenProps) {
 
       <div className="fixed inset-0 z-0 bg-grid pointer-events-none opacity-20"></div>
 
-      <main className="relative z-10 pt-16 pb-12 px-6 flex flex-col items-center max-w-7xl mx-auto w-full">
-        <section className="text-center mb-8 space-y-2">
-          <h1 className="font-headline text-4xl md:text-6xl font-bold tracking-tighter text-primary uppercase">
+      <main className="relative z-10 pt-8 pb-8 px-4 flex flex-col items-center max-w-5xl mx-auto w-full min-h-screen justify-center">
+        <section className="text-center mb-4 space-y-1">
+          <h1 className="font-headline text-3xl md:text-5xl font-bold tracking-tighter text-primary uppercase leading-tight">
             SNAKES &amp; LADDERS<br />
-            <span className="text-secondary">- VIBE EDITION -</span>
+            <span className="text-secondary text-2xl md:text-3xl">- VIBE EDITION -</span>
           </h1>
-          <div className="flex justify-center gap-4 text-4xl py-2 animate-bounce">
+          <div className="flex justify-center gap-2 text-2xl animate-bounce">
             <span>🐍</span><span>⚡</span><span>🪜</span>
           </div>
         </section>
 
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 w-full max-w-5xl">
-          <div className="md:col-span-12 lg:col-span-5 space-y-6">
-            <div className="bg-surface-container/40 backdrop-blur-xl rounded-[2rem] p-6 border border-primary/10">
-              <h2 className="font-headline text-xl font-bold mb-4 flex items-center gap-3 text-primary uppercase">GAME MODE</h2>
-              <div className="flex gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-4xl">
+          <div className="space-y-4">
+            <div className="bg-surface-container/40 backdrop-blur-xl rounded-2xl p-4 border border-primary/10">
+              <h2 className="font-headline text-base font-bold mb-3 flex items-center gap-2 text-primary uppercase italic">GAME MODE</h2>
+              <div className="flex gap-2" role="radiogroup" aria-label="Select Number of Players">
                 {playerOptions.map(opt => (
                   <button
                     key={opt.count}
                     onClick={() => setSelectedPlayers(opt.count)}
-                    className={`flex-1 aspect-square rounded-2xl flex flex-col items-center justify-center transition-all ${
-                      selectedPlayers === opt.count ? 'bg-primary/20 border-2 border-primary shadow-[0_0_20px_rgba(150,248,255,0.3)]' : 'bg-surface-container-low border border-outline-variant/30 opacity-40'
+                    role="radio"
+                    aria-checked={selectedPlayers === opt.count}
+                    aria-label={`${opt.count} Players - ${opt.label}`}
+                    className={`flex-1 py-3 rounded-xl flex flex-col items-center justify-center transition-all ${
+                      selectedPlayers === opt.count ? 'bg-primary/20 border-2 border-primary shadow-[0_0_15px_rgba(150,248,255,0.3)]' : 'bg-surface-container-low border border-outline-variant/30 opacity-40'
                     }`}
                   >
-                    <span className="text-3xl font-black">{opt.count}</span>
-                    <span className="text-[10px] mt-2 font-bold">{opt.label}</span>
+                    <span className="text-2xl font-black" aria-hidden="true">{opt.count}P</span>
+                    <span className="text-[8px] font-bold uppercase" aria-hidden="true">{opt.label}</span>
                   </button>
                 ))}
               </div>
             </div>
+
+            <div className="bg-surface-container/40 backdrop-blur-xl rounded-2xl p-4 border border-secondary/10">
+              <h2 className="font-headline text-base font-bold mb-3 flex items-center gap-2 text-secondary uppercase italic">SYSTEM CONFIG</h2>
+              <div className="flex items-center justify-between p-3 rounded-xl bg-black/20 border border-white/5">
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold text-primary tracking-wide">LOCAL VECTOR</span>
+                  <span className="text-[9px] opacity-40 uppercase tracking-tighter">Bypass Quantum Sync</span>
+                </div>
+                <button 
+                  onClick={() => setIsLocal(!isLocal)}
+                  role="switch"
+                  aria-checked={isLocal}
+                  aria-label="Toggle Local Mode"
+                  className={`w-10 h-5 rounded-full transition-colors relative ${isLocal ? 'bg-primary' : 'bg-surface-container-highest'}`}
+                >
+                  <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${isLocal ? 'left-5.5' : 'left-0.5'}`}></div>
+                </button>
+              </div>
+            </div>
           </div>
 
-          <div className="md:col-span-12 lg:col-span-7 bg-surface-container/40 backdrop-blur-xl rounded-[2.5rem] p-8 border border-secondary/10">
-            <h2 className="font-headline text-xl font-bold mb-6 text-secondary uppercase">PLAYER PROFILES</h2>
-            <div className="space-y-6">
+          <div className="bg-surface-container/40 backdrop-blur-xl rounded-2xl p-4 border border-secondary/10">
+            <h2 className="font-headline text-base font-bold mb-3 text-secondary uppercase italic">PLAYER PROFILES</h2>
+            <div className="space-y-3">
               {[0, 1, 2, 3].map(i => (
-                <div key={i} className={`flex items-center gap-4 transition-all duration-500 ${selectedPlayers > i ? 'opacity-100' : 'opacity-20 pointer-events-none blur-[1px]'}`}>
-                  <div className="w-12 h-12 rounded-full border-2 border-primary/40 overflow-hidden flex-shrink-0">
+                <div key={i} className={`flex items-center gap-3 transition-all duration-500 ${selectedPlayers > i ? 'opacity-100' : 'opacity-20 pointer-events-none blur-[1px]'}`}>
+                  <div className="w-10 h-10 rounded-full border-2 border-primary/40 overflow-hidden flex-shrink-0 shadow-lg">
                     <img src={AVATARS[i]} className="w-full h-full object-cover" alt={`Avatar ${i}`} />
                   </div>
-                  <div className="flex-1 space-y-1">
-                    <label className="text-[9px] tracking-widest opacity-40 uppercase">PLAYER {i + 1}</label>
+                  <div className="flex-1 space-y-0.5">
+                    <label htmlFor={`player-name-${i}`} className="text-[8px] tracking-[0.2em] opacity-40 uppercase font-black">PLAYER_{i + 1}</label>
                     <input
-                      className="w-full bg-transparent border-b border-outline-variant/30 py-1 text-lg focus:outline-none focus:border-primary text-on-surface"
-                      placeholder={i === 0 ? "NEON_WRAITH" : "ENTER IDENTIFIER..."}
+                      id={`player-name-${i}`}
+                      className="w-full bg-transparent border-b border-outline-variant/30 py-0.5 text-base focus:outline-none focus:border-primary text-on-surface font-medium"
+                      placeholder={i === 0 ? "NEON_WRAITH" : "IDENTIFIER..."}
+                      aria-label={`Player ${i + 1} Name`}
                       value={playerNames[i]}
                       onChange={e => handleNameChange(i, e.target.value)}
                     />
@@ -152,16 +185,21 @@ export default function LobbyScreen({ onStartGame }: LobbyScreenProps) {
           </div>
         </div>
 
-        <div className="mt-12 relative">
+        <div className="mt-6 relative">
           <button
             onClick={() => {
               if (audioRef.current) audioRef.current.pause();
-              onStartGame({ playerCount: selectedPlayers, playerNames: playerNames.map((n, i) => n || `Player ${i + 1}`) });
+              onStartGame({ 
+                playerCount: selectedPlayers, 
+                playerNames: playerNames.map((n, i) => n || `Player ${i + 1}`),
+                isLocal
+              });
             }}
-            className="flex items-center gap-3 bg-gradient-to-br from-primary to-primary-container px-10 py-4 rounded-full shadow-[0_0_50px_rgba(150,248,255,0.4)] hover:scale-105 transition-all active:scale-95"
+            aria-label="Start Game"
+            className="flex items-center gap-3 bg-gradient-to-br from-primary to-primary-container px-10 py-3 rounded-full shadow-[0_0_30_px_rgba(150,248,255,0.3)] hover:scale-105 transition-all active:scale-95 group"
           >
-            <span className="material-symbols-outlined text-2xl text-on-primary-fixed">play_arrow</span>
-            <span className="text-xl font-black text-on-primary-fixed uppercase tracking-tighter">INITIATE SESSION</span>
+            <span className="material-symbols-outlined text-xl text-on-primary-fixed group-hover:rotate-12 transition-transform" aria-hidden="true">play_arrow</span>
+            <span className="text-lg font-black text-on-primary-fixed uppercase tracking-tighter">START GAME</span>
           </button>
         </div>
       </main>

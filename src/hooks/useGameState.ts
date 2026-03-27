@@ -80,226 +80,209 @@ const createInitialState = (config?: LobbyConfig): GameState => {
 
 const GAME_DOC_PATH = 'games/VIBE_ROOM_01';
 
+// ─── Move Calculator (Shared Logic) ────────────────────────────────
+export const calculateNextState = (
+  currentState: GameState, 
+  playerId: string, 
+  roll: number
+): { newState: GameState; result: { landed: number; triggeredEvent: string | null; eventStart: number; eventEnd: number } } => {
+  const data = JSON.parse(JSON.stringify(currentState)) as GameState; // Deep clone
+  const playerIndex = data.players.findIndex(p => p.id === playerId);
+  
+  if (playerIndex === -1) throw new Error('Player not in game');
+  if (data.currentTurnIndex !== playerIndex) throw new Error('Not your turn');
+
+  const player = data.players[playerIndex];
+  const startPos = player.position;
+
+  // Rule: if roll exceeds 100, stay put but still advance turn
+  if (startPos + roll > 100) {
+    data.currentTurnIndex = (data.currentTurnIndex + 1) % data.players.length;
+    data.turnCount += 1;
+    data.lastMove = { playerId, roll, timestamp: Date.now() };
+    return { newState: data, result: { landed: startPos, triggeredEvent: 'EXCEED_100', eventStart: startPos, eventEnd: startPos } };
+  }
+
+  let finalPos = startPos + roll;
+  let triggeredEvent: string | null = null;
+  let eventStart = finalPos;
+  let eventEnd = finalPos;
+
+  // Check snakes/ladders
+  if (!data.isQuantumInverted) {
+    const snake = SNAKES.find(s => s.head === finalPos);
+    if (snake) {
+      eventStart = finalPos;
+      finalPos = snake.tail;
+      eventEnd = finalPos;
+      triggeredEvent = 'SNAKE_HIT';
+      player.stats.snakesHit += 1;
+    }
+    const ladder = LADDERS.find(l => l.start === finalPos);
+    if (ladder && !triggeredEvent) {
+      eventStart = finalPos;
+      finalPos = ladder.end;
+      eventEnd = finalPos;
+      triggeredEvent = 'LADDER_CLIMB';
+      player.stats.laddersClimbed += 1;
+    }
+  } else {
+    // INVERTED LOGIC
+    const invertedSnake = SNAKES.find(s => s.tail === finalPos);
+    if (invertedSnake) {
+      eventStart = finalPos;
+      finalPos = invertedSnake.head;
+      eventEnd = finalPos;
+      triggeredEvent = 'LADDER_CLIMB';
+      player.stats.laddersClimbed += 1;
+    }
+    const invertedLadder = LADDERS.find(l => l.end === finalPos);
+    if (invertedLadder && !triggeredEvent) {
+      eventStart = finalPos;
+      finalPos = invertedLadder.start;
+      eventEnd = finalPos;
+      triggeredEvent = 'SNAKE_HIT';
+      player.stats.snakesHit += 1;
+    }
+  }
+
+  player.stats.totalRolls += 1;
+  const rolls = player.stats.totalRolls;
+  player.stats.luckyPercentage = rolls > 0 ? Math.round(((player.stats.laddersClimbed + player.stats.powerUpsUsed) / rolls) * 100) : 0;
+  player.stats.unluckyPercentage = rolls > 0 ? Math.round((player.stats.snakesHit / rolls) * 100) : 0;
+  player.position = finalPos;
+
+  data.players[playerIndex] = player;
+  data.currentTurnIndex = (data.currentTurnIndex + 1) % data.players.length;
+  data.turnCount += 1;
+
+  // Quantum Inversion
+  if (data.isQuantumInverted) {
+    data.quantumTurnsLeft -= 1;
+    if (data.quantumTurnsLeft <= 0) {
+      data.isQuantumInverted = false;
+      data.quantumTurnsLeft = 0;
+    }
+  } else if (data.turnCount > 2 && Math.random() < 0.15) {
+    data.isQuantumInverted = true;
+    data.quantumTurnsLeft = 3;
+  }
+
+  data.lastMove = { playerId, roll, timestamp: Date.now() };
+  data.gameStatus = finalPos === 100 ? 'FINISHED' : data.gameStatus;
+
+  return { newState: data, result: { landed: finalPos, triggeredEvent, eventStart, eventEnd } };
+};
+
 // ─── The Hook ───────────────────────────────────────────────────────
 
 export function useGameState(localPlayerId: string, lobbyConfig?: LobbyConfig) {
-  const [gameState, setGameState] = useState<GameState>(createInitialState(lobbyConfig));
-  const [loading, setLoading] = useState(true);
+  const isLocal = lobbyConfig?.isLocal ?? false;
+  const [gameState, setGameState] = useState<GameState>(() => {
+    if (isLocal) {
+      const saved = localStorage.getItem('VIBE_GAME_LOCAL');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          return createInitialState(lobbyConfig);
+        }
+      }
+    }
+    return createInitialState(lobbyConfig);
+  });
+  const [loading, setLoading] = useState(!isLocal);
   const [error, setError] = useState<string | null>(null);
 
-  // Real-time listener via onSnapshot
+  // Persistence for LOCAL mode
   useEffect(() => {
-    const docRef = doc(db, GAME_DOC_PATH);
+    if (isLocal) {
+      localStorage.setItem('VIBE_GAME_LOCAL', JSON.stringify(gameState));
+    }
+  }, [gameState, isLocal]);
 
-    // Seed the document if it doesn't exist OR if we have a fresh lobbyConfig
+  // Firebase Listener (only if NOT local)
+  useEffect(() => {
+    if (isLocal) return;
+
+    const docRef = doc(db, GAME_DOC_PATH);
     const seedIfNeeded = async () => {
       try {
         const snap = await getDoc(docRef);
-        // If doc missing OR it's a fresh lobby start (we re-seed with custom names/count)
         if (!snap.exists() || (lobbyConfig && snap.data()?.gameStatus === 'LOBBY')) {
           await setDoc(docRef, createInitialState(lobbyConfig));
         } else if (lobbyConfig) {
-          // If the game is already ACTIVE but we have a lobbyConfig, we force a re-seed to match user choices
-          // (Only do this if the user just came from the Lobby)
           await setDoc(docRef, createInitialState(lobbyConfig));
         }
       } catch (e) {
-        console.warn('Firestore seed check failed.', e);
+        console.warn('Firestore seed failed.', e);
         setLoading(false);
       }
     };
     seedIfNeeded();
 
-    const unsubscribe = onSnapshot(
-      docRef,
-      (snapshot) => {
-        if (snapshot.exists()) {
-          setGameState(snapshot.data() as GameState);
-        }
-        setLoading(false);
-      },
-      (err) => {
-        console.error('onSnapshot error:', err);
-        setError(err.message);
-        setLoading(false);
-      }
-    );
+    const unsubscribe = onSnapshot(docRef, (snapshot) => {
+      if (snapshot.exists()) setGameState(snapshot.data() as GameState);
+      setLoading(false);
+    }, (err) => {
+      setError(err.message);
+      setLoading(false);
+    });
 
     return () => unsubscribe();
-  }, [lobbyConfig]);
+  }, [lobbyConfig, isLocal]);
 
-  // ── Derived helpers ────────────────────────────────────────────
   const isMyTurn = gameState.players[gameState.currentTurnIndex]?.id === localPlayerId;
-
   const currentPlayer = gameState.players.find(p => p.id === localPlayerId);
 
-  // ── Atomic Move via runTransaction ────────────────────────────
   const executeMove = async (roll: number): Promise<{ landed: number; triggeredEvent: string | null; eventStart: number; eventEnd: number }> => {
+    if (isLocal) {
+      try {
+        const { newState, result } = calculateNextState(gameState, localPlayerId, roll);
+        setGameState(newState);
+        return result;
+      } catch (e: any) {
+        setError(e.message);
+        return { landed: currentPlayer?.position ?? 1, triggeredEvent: null, eventStart: 1, eventEnd: 1 };
+      }
+    }
+
+    // FIREBASE TRANSACTION
     const docRef = doc(db, GAME_DOC_PATH);
-    const startPosFallback = currentPlayer?.position ?? 1;
-    let result = { landed: startPosFallback, triggeredEvent: null as string | null, eventStart: startPosFallback, eventEnd: startPosFallback };
+    let finalResult = { landed: currentPlayer?.position ?? 1, triggeredEvent: null as string | null, eventStart: 1, eventEnd: 1 };
 
     try {
-      console.log(`[FIREBASE] Initiating move transaction for ${localPlayerId}, roll: ${roll}`);
       await runTransaction(db, async (transaction) => {
         const snap = await transaction.get(docRef);
-        let data: GameState;
+        const data = snap.exists() ? (snap.data() as GameState) : createInitialState(lobbyConfig);
         
-        if (!snap.exists()) {
-          console.warn('[FIREBASE] Document missing during transaction. Seeding new state.');
-          data = createInitialState(lobbyConfig);
-          transaction.set(docRef, data);
-        } else {
-          data = snap.data() as GameState;
+        try {
+          const { newState, result } = calculateNextState(data, localPlayerId, roll);
+          transaction.set(docRef, newState);
+          finalResult = result;
+        } catch (innerErr: any) {
+          throw innerErr;
         }
-
-        const playerIndex = data.players.findIndex(p => p.id === localPlayerId);
-        if (playerIndex === -1) {
-          console.error(`[FIREBASE] Player ${localPlayerId} not found in player list:`, data.players);
-          throw new Error('Player not in game');
-        }
-        if (data.currentTurnIndex !== playerIndex) {
-          console.warn(`[FIREBASE] Not your turn. Current index: ${data.currentTurnIndex}, Your index: ${playerIndex}`);
-          throw new Error('Not your turn');
-        }
-
-        const player = { ...data.players[playerIndex], stats: { ...data.players[playerIndex].stats } };
-        const startPos = player.position;
-
-        // Rule: if roll exceeds 100, stay put but still advance turn
-        if (startPos + roll > 100) {
-          const nextTurnIndex = (data.currentTurnIndex + 1) % data.players.length;
-          transaction.update(docRef, {
-            currentTurnIndex: nextTurnIndex,
-            turnCount: data.turnCount + 1,
-            lastMove: { playerId: localPlayerId, roll, timestamp: Date.now() },
-          });
-          result = { landed: startPos, triggeredEvent: 'EXCEED_100', eventStart: startPos, eventEnd: startPos };
-          return;
-        }
-
-        let finalPos = startPos + roll;
-        let triggeredEvent: string | null = null;
-        let eventStart = finalPos;
-        let eventEnd = finalPos;
-
-        // Check snakes/ladders
-        if (!data.isQuantumInverted) {
-          const snake = SNAKES.find(s => s.head === finalPos);
-          if (snake) {
-            eventStart = finalPos;
-            finalPos = snake.tail;
-            eventEnd = finalPos;
-            triggeredEvent = 'SNAKE_HIT';
-            player.stats.snakesHit += 1;
-          }
-          const ladder = LADDERS.find(l => l.start === finalPos);
-          if (ladder && !triggeredEvent) {
-            eventStart = finalPos;
-            finalPos = ladder.end;
-            eventEnd = finalPos;
-            triggeredEvent = 'LADDER_CLIMB';
-            player.stats.laddersClimbed += 1;
-          }
-        } else {
-          // INVERTED LOGIC
-          const invertedSnake = SNAKES.find(s => s.tail === finalPos);
-          if (invertedSnake) {
-            eventStart = finalPos;
-            finalPos = invertedSnake.head;
-            eventEnd = finalPos;
-            triggeredEvent = 'LADDER_CLIMB'; // Inverted snake = climb
-            player.stats.laddersClimbed += 1;
-          }
-          const invertedLadder = LADDERS.find(l => l.end === finalPos);
-          if (invertedLadder && !triggeredEvent) {
-            eventStart = finalPos;
-            finalPos = invertedLadder.start;
-            eventEnd = finalPos;
-            triggeredEvent = 'SNAKE_HIT'; // Inverted ladder = drop
-            player.stats.snakesHit += 1;
-          }
-        }
-
-        // Increment total rolls
-        player.stats.totalRolls += 1;
-
-        // Recalculate luck using user's formula
-        const rolls = player.stats.totalRolls;
-        player.stats.luckyPercentage = rolls > 0
-          ? Math.round(((player.stats.laddersClimbed + player.stats.powerUpsUsed) / rolls) * 100)
-          : 0;
-        player.stats.unluckyPercentage = rolls > 0
-          ? Math.round((player.stats.snakesHit / rolls) * 100)
-          : 0;
-
-        player.position = finalPos;
-
-        const updatedPlayers = [...data.players];
-        updatedPlayers[playerIndex] = player;
-
-        const nextTurnIndex = (data.currentTurnIndex + 1) % data.players.length;
-        const newTurnCount = data.turnCount + 1;
-
-        // Quantum Inversion trigger/decay
-        let newQuantumInverted = data.isQuantumInverted;
-        let newQuantumTurnsLeft = data.quantumTurnsLeft;
-
-        if (data.isQuantumInverted) {
-          newQuantumTurnsLeft -= 1;
-          if (newQuantumTurnsLeft <= 0) {
-            newQuantumInverted = false;
-            newQuantumTurnsLeft = 0;
-          }
-        } else if (newTurnCount > 2 && Math.random() < 0.15) {
-          newQuantumInverted = true;
-          newQuantumTurnsLeft = 3;
-        }
-
-        transaction.update(docRef, {
-          players: updatedPlayers,
-          currentTurnIndex: nextTurnIndex,
-          turnCount: newTurnCount,
-          isQuantumInverted: newQuantumInverted,
-          quantumTurnsLeft: newQuantumTurnsLeft,
-          lastMove: { playerId: localPlayerId, roll, timestamp: Date.now() },
-          gameStatus: finalPos === 100 ? 'FINISHED' : data.gameStatus,
-        });
-
-        result = { landed: finalPos, triggeredEvent, eventStart, eventEnd };
       });
     } catch (e: any) {
-      console.error('Transaction failed:', e);
       setError(e.message);
     }
-
-    return result;
+    return finalResult;
   };
 
-  // ── Force Quantum Inversion (for manual trigger) ──────────────
   const triggerQuantumEvent = async () => {
+    if (isLocal) {
+      setGameState(prev => ({ ...prev, isQuantumInverted: true, quantumTurnsLeft: 3 }));
+      return;
+    }
     const docRef = doc(db, GAME_DOC_PATH);
     try {
       await runTransaction(db, async (transaction) => {
         const snap = await transaction.get(docRef);
-        if (!snap.exists()) return;
-        transaction.update(docRef, {
-          isQuantumInverted: true,
-          quantumTurnsLeft: 3,
-        });
+        if (snap.exists()) transaction.update(docRef, { isQuantumInverted: true, quantumTurnsLeft: 3 });
       });
-    } catch (e) {
-      console.error('Quantum event trigger failed:', e);
-    }
+    } catch (e) { console.error(e); }
   };
 
-  return {
-    gameState,
-    loading,
-    error,
-    isMyTurn,
-    currentPlayer,
-    executeMove,
-    triggerQuantumEvent,
-  };
+  return { gameState, loading, error, isMyTurn, currentPlayer, executeMove, triggerQuantumEvent };
 }

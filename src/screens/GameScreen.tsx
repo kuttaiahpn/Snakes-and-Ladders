@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { LobbyConfig } from '../App';
 import TopAppBar from '../components/TopAppBar';
 import SideNavBar, { ChatMessage } from '../components/SideNavBar';
 import Grid from '../components/Grid';

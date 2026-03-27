@@ -8,7 +8,6 @@ export const SNAKES = [
   { head: 16, tail: 6 },
   { head: 35, tail: 7 },
   { head: 58, tail: 4 },
-  { head: 58, tail: 4 },
 ];
 
 export const LADDERS = [

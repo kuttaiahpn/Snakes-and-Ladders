@@ -6,6 +6,7 @@ import GameScreen from './screens/GameScreen';
 export interface LobbyConfig {
   playerCount: number;
   playerNames: string[];
+  isLocal: boolean;
 }
 
 export default function App() {
@@ -13,6 +14,7 @@ export default function App() {
   const [lobbyConfig, setLobbyConfig] = useState<LobbyConfig>({
     playerCount: 1,
     playerNames: ['NEON_WRAITH'],
+    isLocal: true,
   });
 
   const handleStartGame = (config: LobbyConfig) => {
