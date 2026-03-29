@@ -106,7 +106,7 @@ export default function LobbyScreen({ onStartGame }: LobbyScreenProps) {
 
       <div className="fixed inset-0 z-0 bg-grid pointer-events-none opacity-20"></div>
 
-      <main className="relative z-10 pt-8 pb-8 px-4 flex flex-col items-center max-w-5xl mx-auto w-full min-h-screen justify-center">
+      <main className="relative z-10 pt-24 pb-8 px-4 flex flex-col items-center max-w-5xl mx-auto w-full min-h-screen justify-center">
         <section className="text-center mb-4 space-y-1">
           <h1 className="font-headline text-3xl md:text-5xl font-bold tracking-tighter text-primary uppercase leading-tight">
             SNAKES &amp; LADDERS<br />
@@ -141,11 +141,11 @@ export default function LobbyScreen({ onStartGame }: LobbyScreenProps) {
             </div>
 
             <div className="bg-surface-container/40 backdrop-blur-xl rounded-2xl p-4 border border-secondary/10">
-              <h2 className="font-headline text-base font-bold mb-3 flex items-center gap-2 text-secondary uppercase italic">SYSTEM CONFIG</h2>
+              <h2 className="font-headline text-base font-bold mb-3 flex items-center gap-2 text-secondary uppercase italic">GAME CONNECTIVITY</h2>
               <div className="flex items-center justify-between p-3 rounded-xl bg-black/20 border border-white/5">
                 <div className="flex flex-col">
                   <span className="text-xs font-bold text-primary tracking-wide">LOCAL VECTOR</span>
-                  <span className="text-[9px] opacity-40 uppercase tracking-tighter">Bypass Quantum Sync</span>
+                  <span className="text-[9px] opacity-40 uppercase tracking-tighter">Bypass Database Sync</span>
                 </div>
                 <button 
                   onClick={() => setIsLocal(!isLocal)}
